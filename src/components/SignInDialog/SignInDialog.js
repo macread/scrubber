@@ -168,6 +168,7 @@ class SignInDialog extends Component {
           const emailAddress = user.email;
 
           this.props.openSnackbar(`Signed in as ${displayName || emailAddress}`);
+          this.props.signIn(user);
         });
       }).catch((reason) => {
         const code = reason.code;

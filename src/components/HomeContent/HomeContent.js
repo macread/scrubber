@@ -1,8 +1,12 @@
-import React, { Component } from 'react';
+import React, {
+  Component
+} from 'react';
 
 import PropTypes from 'prop-types';
 
-import { withStyles } from '@material-ui/core/styles';
+import {
+  withStyles
+} from '@material-ui/core/styles';
 
 import Fab from '@material-ui/core/Fab';
 
@@ -29,30 +33,51 @@ const styles = (theme) => ({
 class HomeContent extends Component {
   render() {
     // Styling
-    const { classes } = this.props;
+    const {
+      classes
+    } = this.props;
 
     // Properties
-    const { signedIn } = this.props;
+    const {
+      signedIn
+    } = this.props;
 
     if (signedIn) {
-      return (
-        <EmptyState
-          icon={<HomeIcon className={classes.emptyStateIcon} color="action" />}
-          title="Home"
-        />
+      return ( <
+        EmptyState icon = {
+          < HomeIcon className = {
+            classes.emptyStateIcon
+          }
+          color = "action" / >
+        }
+        title = "Home" /
+        >
       );
     }
 
-    return (
-      <EmptyState
-        title={process.env.REACT_APP_NAME}
-        description="The three musketeers, all in one pack in the form of a boilerplate app"
-        button={
-          <Fab className={classes.button} color="secondary" href="https://github.com/Phoqe/react-material-ui-firebase" rel="noopener noreferrer" target="_blank" variant="extended">
-            <GitHubCircleIcon className={classes.buttonIcon} />
-            GitHub
-          </Fab>
+    return ( <
+      EmptyState title = {
+        process.env.REACT_APP_NAME
+      }
+      description = "Verifying your entrants, one athlete at a time..."
+      button = {
+        <
+        Fab className = {
+          classes.button
         }
+        color = "secondary"
+        href = "https://github.com/Phoqe/react-material-ui-firebase"
+        rel = "noopener noreferrer"
+        target = "_blank"
+        variant = "extended" >
+        <
+        GitHubCircleIcon className = {
+          classes.buttonIcon
+        }
+        />
+        GitHub <
+        /Fab>
+      }
       />
     );
   }
