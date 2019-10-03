@@ -92,7 +92,7 @@ authentication.signIn = (emailAddress, password) => {
 
     const currentUser = auth.currentUser;
 
-    if (currentUser) {
+    if (!currentUser) {
       reject();
 
       return;
@@ -128,7 +128,7 @@ authentication.signInWithAuthProvider = (providerId) => {
 
     const currentUser = auth.currentUser;
 
-    if (currentUser) {
+    if (!currentUser) {
       reject();
 
       return;
