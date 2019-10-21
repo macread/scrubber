@@ -1,18 +1,8 @@
-import React, {
-  Component
-} from 'react';
-
+import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-
-import {
-  withStyles
-} from '@material-ui/core/styles';
-
-import Fab from '@material-ui/core/Fab';
-
+import Dropzone from 'react-dropzone';
+import { withStyles } from '@material-ui/core/styles';
 import HomeIcon from '@material-ui/icons/Home';
-
-import GitHubCircleIcon from 'mdi-material-ui/GithubCircle';
 
 import EmptyState from '../EmptyState';
 
@@ -31,61 +21,61 @@ const styles = (theme) => ({
 });
 
 class HomeContent extends Component {
+
+  loadFile = (files) => {
+    files.forEach(file => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        const fileAsBinaryString = reader.result
+        console.log(fileAsBinaryString);
+      }
+      reader.onabort = () => console.log('file reading was aborted');
+      reader.onerror = () => console.log('file reading has failed');
+
+      try {
+        reader.readAsDataURL(file);
+      } catch (err) {
+        console.log(err)
+        console.log(file);
+      };
+    });
+  };
+
   render() {
     // Styling
-    const {
-      classes
-    } = this.props;
+    const { classes } = this.props;
 
     // Properties
-    const {
-      signedIn
-    } = this.props;
+    const { signedIn } = this.props;
 
     if (signedIn) {
-      return ( <
-        EmptyState icon = {
-          < HomeIcon className = {
-            classes.emptyStateIcon
-          }
-          color = "action" / >
-        }
-        title = "Home" /
-        >
+      return (
+        <>
+          <EmptyState icon={<HomeIcon className={classes.emptyStateIcon} color="action" />} title="Home" />
+          <Dropzone onDrop={acceptedFiles => this.loadFile(acceptedFiles)}>
+            {({ getRootProps, getInputProps }) => (
+              <section>
+                <div {...getRootProps()}>
+                  <input {...getInputProps()} />
+                  <p>Drag 'n' drop some files here, or click to select files</p>
+                </div>
+              </section>
+            )}
+          </Dropzone>
+        </>
+
       );
     }
 
-    return ( <
-      EmptyState title = {
-        process.env.REACT_APP_NAME
-      }
-      description = "Verifying your entrants, one athlete at a time..."
-      button = {
-        <
-        Fab className = {
-          classes.button
-        }
-        color = "secondary"
-        href = "https://github.com/Phoqe/react-material-ui-firebase"
-        rel = "noopener noreferrer"
-        target = "_blank"
-        variant = "extended" >
-        <
-        GitHubCircleIcon className = {
-          classes.buttonIcon
-        }
-        />
-        GitHub <
-        /Fab>
-      }
-      />
+    return (<EmptyState title={process.env.REACT_APP_NAME}
+      description="Verifying your entrants, one athlete at a time..."
+    />
     );
   }
 }
 
-HomeContent.defaultProps = {
-  signedIn: false
-};
+
+HomeContent.defaultProps = { signedIn: false };
 
 HomeContent.propTypes = {
   // Styling
