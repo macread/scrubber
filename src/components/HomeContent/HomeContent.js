@@ -3,8 +3,8 @@ import PropTypes from 'prop-types';
 import Dropzone from 'react-dropzone';
 import { withStyles } from '@material-ui/core/styles';
 import HomeIcon from '@material-ui/icons/Home';
-
 import EmptyState from '../EmptyState';
+import XLSX from 'xlsx';
 
 const styles = (theme) => ({
   emptyStateIcon: {
@@ -26,9 +26,12 @@ class HomeContent extends Component {
     files.forEach(file => {
       const reader = new FileReader();
       reader.onload = () => {
-        const fileAsBinaryString = reader.result
-        console.log(fileAsBinaryString);
-      }
+      //   const fileAsBinaryString = reader.result
+      //   console.log(fileAsBinaryString);
+        const data = new Uint8Array(reader.result);
+        const workbook = XLSX.read(data, { type: 'array' });
+        console.log(workbook);
+      };
       reader.onabort = () => console.log('file reading was aborted');
       reader.onerror = () => console.log('file reading has failed');
 
@@ -37,7 +40,7 @@ class HomeContent extends Component {
       } catch (err) {
         console.log(err)
         console.log(file);
-      };
+      }
     });
   };
 
