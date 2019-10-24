@@ -26,17 +26,16 @@ class HomeContent extends Component {
     files.forEach(file => {
       const reader = new FileReader();
       reader.onload = () => {
-      //   const fileAsBinaryString = reader.result
-      //   console.log(fileAsBinaryString);
         const data = new Uint8Array(reader.result);
         const workbook = XLSX.read(data, { type: 'array' });
-        console.log(workbook);
+        const sheet_name_list = workbook.SheetNames;
+        console.log(XLSX.utils.sheet_to_json(workbook.Sheets[sheet_name_list[0]]));
       };
       reader.onabort = () => console.log('file reading was aborted');
       reader.onerror = () => console.log('file reading has failed');
 
       try {
-        reader.readAsDataURL(file);
+        reader.readAsArrayBuffer(file);
       } catch (err) {
         console.log(err)
         console.log(file);
