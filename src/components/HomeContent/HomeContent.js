@@ -3,33 +3,47 @@ import PropTypes from 'prop-types';
 import Dropzone from 'react-dropzone';
 import { withStyles } from '@material-ui/core/styles';
 import HomeIcon from '@material-ui/icons/Home';
-import EmptyState from '../EmptyState';
 import XLSX from 'xlsx';
+import { auth } from 'firebase';
+import EmptyState from '../EmptyState';
+
+import {  firestore } from '../../firebase';
 
 const styles = (theme) => ({
   emptyStateIcon: {
-    fontSize: theme.spacing(12)
+    fontSize: theme.spacing(12),
   },
 
   button: {
-    marginTop: theme.spacing(1)
+    marginTop: theme.spacing(1),
   },
 
   buttonIcon: {
-    marginRight: theme.spacing(1)
-  }
+    marginRight: theme.spacing(1),
+  },
 });
 
 class HomeContent extends Component {
-
   loadFile = (files) => {
     files.forEach(file => {
       const reader = new FileReader();
       reader.onload = () => {
         const data = new Uint8Array(reader.result);
         const workbook = XLSX.read(data, { type: 'array' });
-        const sheet_name_list = workbook.SheetNames;
-        console.log(XLSX.utils.sheet_to_json(workbook.Sheets[sheet_name_list[0]]));
+        const startList = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.sheetNames[0]]);
+
+        firestore.collection('startLists').add({
+          userId: auth.currentUser.uid,
+          raceName: 'Test Race',
+          raceDate: '2019-10-25',
+          startList,
+        })
+          .then((docRef) => {
+            console.log('Document written with ID: ', docRef.id);
+          })
+          .catch((error) => {
+            console.error('Error adding document: ', error);
+          });
       };
       reader.onabort = () => console.log('file reading was aborted');
       reader.onerror = () => console.log('file reading has failed');
@@ -37,7 +51,7 @@ class HomeContent extends Component {
       try {
         reader.readAsArrayBuffer(file);
       } catch (err) {
-        console.log(err)
+        console.log(err);
         console.log(file);
       }
     });
@@ -69,7 +83,8 @@ class HomeContent extends Component {
       );
     }
 
-    return (<EmptyState title={process.env.REACT_APP_NAME}
+    return (
+<EmptyState title={process.env.REACT_APP_NAME}
       description="Verifying your entrants, one athlete at a time..."
     />
     );
@@ -84,7 +99,7 @@ HomeContent.propTypes = {
   classes: PropTypes.object.isRequired,
 
   // Properties
-  signedIn: PropTypes.bool.isRequired
+  signedIn: PropTypes.bool.isRequired,
 };
 
 export default withStyles(styles)(HomeContent);
