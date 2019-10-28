@@ -4,10 +4,9 @@ import Dropzone from 'react-dropzone';
 import { withStyles } from '@material-ui/core/styles';
 import HomeIcon from '@material-ui/icons/Home';
 import XLSX from 'xlsx';
-import { auth } from 'firebase';
 import EmptyState from '../EmptyState';
 
-import {  firestore } from '../../firebase';
+import { auth, firestore } from '../../firebase';
 
 const styles = (theme) => ({
   emptyStateIcon: {
@@ -30,7 +29,7 @@ class HomeContent extends Component {
       reader.onload = () => {
         const data = new Uint8Array(reader.result);
         const workbook = XLSX.read(data, { type: 'array' });
-        const startList = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.sheetNames[0]]);
+        const startList = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]]);
 
         firestore.collection('startLists').add({
           userId: auth.currentUser.uid,
@@ -84,9 +83,9 @@ class HomeContent extends Component {
     }
 
     return (
-<EmptyState title={process.env.REACT_APP_NAME}
-      description="Verifying your entrants, one athlete at a time..."
-    />
+      <EmptyState title={process.env.REACT_APP_NAME}
+        description="Verifying your entrants, one athlete at a time..."
+      />
     );
   }
 }
