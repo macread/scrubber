@@ -1,19 +1,24 @@
-service firebase.storage {
-  match /b/{bucket}/o {
-    match /images {
-      match /avatars/{uid} {
-        allow get: if request.auth != null;
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /users/{uid} {
+      allow get: if request.auth.uid != null;
+      allow list: if request.auth.uid != null;
+      
+      allow create: if request.auth.uid != null &&
+                    request.auth.uid == uid &&
+                    request.resource.data.keys().hasAll(['firstName', 'lastName', 'username']) &&
+                    request.resource.data.username.size() > 2 &&
+                    request.resource.data.username.size() <= 20;
 
-        allow create: if request.auth != null &&
-                         request.auth.uid == uid &&
-                         request.resource.contentType.matches('image/.*') &&
-                         request.resource.size <= 20 * 1024 * 1024 &&
-                         resource == null ||
-                         request.resource.md5Hash != resource.md5Hash;
-        
-        allow delete: if request.auth != null &&
-                         request.auth.uid == uid;
-      }
+      allow update: if request.auth.uid != null &&
+                       request.auth.uid == uid;
+
+      allow delete: if request.auth.uid != null &&
+                       request.auth.uid == uid;
+    }
+    match /{uid}/{document=**} {
+       allow read, write: if request.auth.uid != null &&
+                       		request.auth.uid == uid;
     }
   }
 }

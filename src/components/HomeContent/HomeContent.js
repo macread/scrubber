@@ -31,8 +31,7 @@ class HomeContent extends Component {
         const workbook = XLSX.read(data, { type: 'array' });
         const startList = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]]);
 
-        firestore.collection('startLists').add({
-          userId: auth.currentUser.uid,
+        firestore.collection(auth.currentUser.uid).doc('WYSEF 2019-11-23').set({
           raceName: 'Test Race',
           raceDate: '2019-10-25',
           startList,
