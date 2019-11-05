@@ -2,9 +2,9 @@ import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import Dropzone from 'react-dropzone';
 import { withStyles } from '@material-ui/core/styles';
-import HomeIcon from '@material-ui/icons/Home';
 import XLSX from 'xlsx';
 import EmptyState from '../EmptyState';
+import Races from '../Races';
 
 import { auth, firestore } from '../../firebase';
 
@@ -23,6 +23,18 @@ const styles = (theme) => ({
 });
 
 class HomeContent extends Component {
+
+  constructor(props) {
+    super(props);
+    this.state = {
+      events: {},
+    };
+  }
+
+  componentDidMount() {
+    this.getEvents();
+  }
+
   loadFile = (files) => {
     files.forEach(file => {
       const reader = new FileReader();
@@ -55,9 +67,19 @@ class HomeContent extends Component {
     });
   };
 
+  getEvents = () => {
+    firestore.collection(auth.currentUser.uid).get()
+      .then((events) => console.log('events: ', events))
+      .catch((err) => console.log('Error getting events: ', err));
+
+    //TODO: Pulls the data into a querySnapshot (events). 
+    //TODO: Not sure if I need to extract the data from the snapshot and put it into an object.
+    //TODO: or just sent the snapshot to the races component as a prop.
+
+
+  }
+
   render() {
-    // Styling
-    const { classes } = this.props;
 
     // Properties
     const { signedIn } = this.props;
@@ -65,7 +87,6 @@ class HomeContent extends Component {
     if (signedIn) {
       return (
         <>
-          <EmptyState icon={<HomeIcon className={classes.emptyStateIcon} color="action" />} title="Home" />
           <Dropzone onDrop={acceptedFiles => this.loadFile(acceptedFiles)}>
             {({ getRootProps, getInputProps }) => (
               <section>
@@ -76,6 +97,7 @@ class HomeContent extends Component {
               </section>
             )}
           </Dropzone>
+          <Races />
         </>
 
       );
