@@ -65,7 +65,7 @@ function getSorting(order, orderBy) {
 }
 
 const headCells = [
-  { id: 'race', numeric: false, disablePadding: true, label: 'Race' },
+  { id: 'race', numeric: false, disablePadding: true, label: 'Event' },
   { id: 'date', numeric: true, disablePadding: false, label: 'Date' },
 ];
 
@@ -160,7 +160,7 @@ const EnhancedTableToolbar = props => {
         </Typography>
       ) : (
         <Typography className={classes.title} variant="h6" id="tableTitle">
-          Races
+          Events
         </Typography>
       )}
 

@@ -4,7 +4,7 @@ import Dropzone from 'react-dropzone';
 import { withStyles } from '@material-ui/core/styles';
 import XLSX from 'xlsx';
 import EmptyState from '../EmptyState';
-import Races from '../Races';
+import Events from '../Events';
 
 import { auth, firestore } from '../../firebase';
 
@@ -27,7 +27,7 @@ class HomeContent extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      events: {},
+      events: [],
     };
   }
 
@@ -41,12 +41,12 @@ class HomeContent extends Component {
       reader.onload = () => {
         const data = new Uint8Array(reader.result);
         const workbook = XLSX.read(data, { type: 'array' });
-        const startList = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]]);
+        const regData = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]]);
 
         firestore.collection(auth.currentUser.uid).doc('WYSEF 2019-11-23').set({
-          raceName: 'Test Race',
-          raceDate: '2019-10-25',
-          startList,
+          eventName: 'Test Race',
+          eventDate: '2019-10-25',
+          regData,
         })
           .then((docRef) => {
             console.log('Document written with ID: ', docRef.id);
@@ -69,12 +69,16 @@ class HomeContent extends Component {
 
   getEvents = () => {
     firestore.collection(auth.currentUser.uid).get()
-      .then((events) => console.log('events: ', events))
+      .then((events) => {
+        const eventsArr = [];
+        events.forEach((event) => eventsArr.push(event.data()));
+        this.setState({ events: eventsArr });
+      })
       .catch((err) => console.log('Error getting events: ', err));
 
     //TODO: Pulls the data into a querySnapshot (events). 
     //TODO: Not sure if I need to extract the data from the snapshot and put it into an object.
-    //TODO: or just sent the snapshot to the races component as a prop.
+    //TODO: or just sent the snapshot to the Events component as a prop.
 
 
   }
@@ -97,7 +101,7 @@ class HomeContent extends Component {
               </section>
             )}
           </Dropzone>
-          <Races />
+          <Events events={this.state.events} />
         </>
 
       );
