@@ -75,12 +75,6 @@ class HomeContent extends Component {
         this.setState({ events: eventsArr });
       })
       .catch((err) => console.log('Error getting events: ', err));
-
-    //TODO: Pulls the data into a querySnapshot (events). 
-    //TODO: Not sure if I need to extract the data from the snapshot and put it into an object.
-    //TODO: or just sent the snapshot to the Events component as a prop.
-
-
   }
 
   render() {
