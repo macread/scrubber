@@ -4,6 +4,7 @@ import PropTypes from 'prop-types';
 
 import { BrowserRouter, Switch, Route } from "react-router-dom";
 
+import Event from '../Event';
 import HomeContent from '../HomeContent';
 import NotFoundContent from '../NotFoundContent';
 
@@ -16,6 +17,7 @@ class Router extends Component {
       <BrowserRouter>
         <Switch>
           <Route path="/" exact render={() => (<HomeContent signedIn={signedIn} />)} />
+          <Route path="/event" exact render={() => (<Event signedIn={signedIn} />)} />
           <Route component={NotFoundContent} />
         </Switch>
       </BrowserRouter>
