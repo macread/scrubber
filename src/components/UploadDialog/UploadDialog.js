@@ -51,7 +51,7 @@ export default function FormDialog() {
         const workbook = XLSX.read(data, { type: 'array' });
         const regData = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]]);
 
-        firestore.collection(auth.currentUser.uid).doc(`${eventName} ${eventDate}`).set({
+        firestore.collection(auth.currentUser.uid).doc().set({
           eventName: eventName,
           eventDate: new Date(eventDate),
           regData,

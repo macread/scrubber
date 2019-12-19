@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 import clsx from 'clsx';
 import moment from 'moment';
 import { lighten, makeStyles } from '@material-ui/core/styles';
+import Link from '@material-ui/core/Link';
 import Table from '@material-ui/core/Table';
 import TableBody from '@material-ui/core/TableBody';
 import TableCell from '@material-ui/core/TableCell';
@@ -301,7 +302,7 @@ export default function EnhancedTable(props) {
                       role="checkbox"
                       aria-checked={isItemSelected}
                       tabIndex={-1}
-                      key={row.eventName}
+                      key={row.eventId}
                       selected={isItemSelected}
                     >
                       <TableCell padding="checkbox">
@@ -311,7 +312,9 @@ export default function EnhancedTable(props) {
                         />
                       </TableCell>
                       <TableCell component="th" id={labelId} scope="row" padding="none">
-                        {row.eventName}
+                        <Link href={`/event/${row.eventId}`} >
+                          {row.eventName}
+                        </Link>
                       </TableCell>
                       <TableCell component="th" id={labelId} scope="row" padding="none">
                         {moment(row.eventDate.toDate()).format('MM/DD/YYYY')}

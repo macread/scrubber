@@ -40,7 +40,14 @@ class HomeContent extends Component {
     firestore.collection(auth.currentUser.uid).get()
       .then((events) => {
         const eventsArr = [];
-        events.forEach((event) => eventsArr.push(event.data()));
+        events.forEach((event) => {
+          eventsArr.push(
+            {
+              eventId: event.id,
+              eventName: event.get('eventName'),
+              eventDate: event.get('eventDate')
+            })
+        });
         this.setState({ events: eventsArr });
       })
       .catch((err) => console.log('Error getting events: ', err));
