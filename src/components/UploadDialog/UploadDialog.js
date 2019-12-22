@@ -35,7 +35,6 @@ export default function FormDialog() {
 
   const handleEventName = (e) => {
     setEventName(e.target.value);
-    console.log(eventName);
   }
 
   const handleDrop = (files) => {
@@ -49,7 +48,7 @@ export default function FormDialog() {
       reader.onload = () => {
         const data = new Uint8Array(reader.result);
         const workbook = XLSX.read(data, { type: 'array' });
-        const regData = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]]);
+        const regData = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]], { header: "A" });
 
         firestore.collection(auth.currentUser.uid).doc().set({
           eventName: eventName,

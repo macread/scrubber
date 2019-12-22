@@ -17,7 +17,7 @@ class Router extends Component {
       <BrowserRouter>
         <Switch>
           <Route path="/" exact render={() => (<HomeContent signedIn={signedIn} />)} />
-          <Route path="/event/:eventId" exact render={() => (<Event signedIn={signedIn} />)} />
+          <Route path="/event/:eventId" render={(props) => <Event {...props} signedIn={signedIn} />} />
           <Route component={NotFoundContent} />
         </Switch>
       </BrowserRouter>
