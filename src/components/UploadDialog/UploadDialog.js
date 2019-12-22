@@ -47,7 +47,7 @@ export default function FormDialog() {
       const reader = new FileReader();
       reader.onload = () => {
         const data = new Uint8Array(reader.result);
-        const workbook = XLSX.read(data, { type: 'array' });
+        const workbook = XLSX.read(data, { type: 'array', cellDates: true, dateNF: 'yyyy/mm/dd;@' });
         const regData = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]], { header: "A" });
 
         firestore.collection(auth.currentUser.uid).doc().set({

@@ -1,4 +1,7 @@
 import React, { Component } from 'react';
+
+import moment from 'moment';
+
 import { withStyles } from '@material-ui/core/styles';
 import Paper from '@material-ui/core/Paper';
 import Table from '@material-ui/core/Table';
@@ -43,7 +46,6 @@ class StickyHeadTable extends Component {
           col.label = this.state.rows[0][`${key}`];
           return col;
         });
-        console.log('columns', columns);
         this.setState({ columns });
       })
       .catch((err) => console.log('Error getting event: ', err));
@@ -80,32 +82,35 @@ class StickyHeadTable extends Component {
               </TableRow>
             </TableHead>
             <TableBody>
-              {/* {rows.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map(row => {
+              {this.state.rows.slice(this.state.page * this.state.rowsPerPage, this.state.page * this.state.rowsPerPage + this.state.rowsPerPage).map((row, i) => {
                 return (
-                  <TableRow hover role="checkbox" tabIndex={-1} key={row.code}>
-                    {columns.map(column => {
-                      const value = row[column.id];
-                      return (
-                        <TableCell key={column.id} align={column.align}>
-                          {column.format && typeof value === 'number' ? column.format(value) : value}
-                        </TableCell>
-                      );
-                    })}
-                  </TableRow>
+                  i > 0 ? (
+                    <TableRow hover role="checkbox" tabIndex={-1} key={row.code}>
+                      {this.state.columns.map(column => {
+                        const value = typeof row[column.id] === 'object' ? moment(row[column.id].toDate()).format('MM/DD/YYYY') : row[column.id];
+                        return (
+                          <TableCell key={column.id} align={column.align}>
+                            {column.format &&
+                              typeof value === 'number' ? column.format(value) : value}
+                          </TableCell>
+                        );
+                      })}
+                    </TableRow>
+                  ) : null
                 );
-              })} */}
+              })}
             </TableBody>
           </Table>
         </TableContainer>
-        {/* <TablePagination
+        <TablePagination
           rowsPerPageOptions={[10, 25, 100]}
           component="div"
-          count={rows.length}
-          rowsPerPage={rowsPerPage}
-          page={page}
-          onChangePage={handleChangePage}
-          onChangeRowsPerPage={handleChangeRowsPerPage}
-        /> */}
+          count={this.state.rows.length}
+          rowsPerPage={this.state.rowsPerPage}
+          page={this.state.page}
+          onChangePage={this.handleChangePage}
+          onChangeRowsPerPage={this.handleChangeRowsPerPage}
+        />
       </Paper>
     );
   };
