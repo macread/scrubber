@@ -277,7 +277,7 @@ export default function EnhancedTable(props) {
             className={classes.table}
             aria-labelledby="tableTitle"
             size={dense ? 'small' : 'medium'}
-            aria-label="enhanced table"
+            aria-label="event table"
           >
             <EnhancedTableHead
               classes={classes}

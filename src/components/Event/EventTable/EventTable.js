@@ -19,6 +19,9 @@ const useStyles = makeStyles({
   container: {
     maxHeight: 440,
   },
+  table: {
+    minWidth: 650,
+  },
 });
 
 export default function EventTable(props) {
@@ -45,7 +48,12 @@ export default function EventTable(props) {
   return (
     <Paper className={classes.root}>
       <TableContainer className={classes.container}>
-        <Table stickyHeader aria-label="sticky table">
+        <Table
+          stickyHeader
+          aria-label="athlete table"
+          className={classes.table}
+          size="small"
+        >
           <TableHead>
             <TableRow>
               {columns.map(column => (
