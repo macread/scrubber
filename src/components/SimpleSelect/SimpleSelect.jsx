@@ -22,10 +22,14 @@ export default function SimpleSelect(props) {
 
   const handleChange = event => {
     setValue(event.target.value);
+    props.onChange(event.target.value);
   };
 
   return (
-    <Tooltip title={props.toolTip} aria-label={props.toolTip}>
+    <Tooltip
+      aria-label={props.toolTip}
+      placement='right-end'
+      title={props.toolTip}>
       <FormControl className={classes.formControl}>
         <InputLabel id="demo-simple-select-helper-label">{props.label}</InputLabel>
         <Select

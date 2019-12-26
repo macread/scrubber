@@ -12,6 +12,21 @@ import TableHead from '@material-ui/core/TableHead';
 import TablePagination from '@material-ui/core/TablePagination';
 import TableRow from '@material-ui/core/TableRow';
 
+const columns = [
+  { id: 'lastName', label: 'Last Name', minWidth: 100 },
+  { id: 'firstName', label: 'First Name', minWidth: 100 },
+  { id: 'club', label: 'Club', minWidth: 200 },
+  { id: 'birthDate', label: 'Birth Date', minWidth: 100 },
+  { id: 'usssLicense', label: 'USSS License', minWidth: 50 },
+  { id: 'usssSprintPoints', label: 'Sprint Points', minWidth: 50 },
+  { id: 'usssDistancePoints', label: 'Distance Points', minWidth: 50 },
+  { id: 'division', label: 'Division', minWidth: 50 },
+  { id: 'fisLicense', label: 'FIS License', minWidth: 50 },
+  { id: 'fisSprintPoints', label: 'Sprint Points', minWidth: 50 },
+  { id: 'fisDistancePoints', label: 'Distance Points', minWidth: 50 },
+  { id: 'country', label: 'Country', minWidth: 50 },
+];
+
 const useStyles = makeStyles({
   root: {
     width: '100%',
@@ -27,12 +42,10 @@ const useStyles = makeStyles({
 export default function EventTable(props) {
   const classes = useStyles();
   const [page, setPage] = useState(0);
-  const [columns, setColumns] = useState([]);
   const [rows, setRows] = useState([]);
   const [rowsPerPage, setRowsPerPage] = useState(10);
 
   useEffect(() => {
-    setColumns(props.columns);
     setRows(props.rows);
   }, [props.columns, props.rows]);
 
@@ -49,16 +62,18 @@ export default function EventTable(props) {
     <Paper className={classes.root}>
       <TableContainer className={classes.container}>
         <Table
-          stickyHeader
           aria-label="athlete table"
           className={classes.table}
           size="small"
+          stickyHeader
         >
           <TableHead>
             <TableRow>
               {columns.map(column => (
                 <TableCell
                   key={column.id}
+                  align={column.align}
+                  style={{ minWidth: column.minWidth }}
                 >
                   {column.label}
                 </TableCell>
@@ -74,8 +89,7 @@ export default function EventTable(props) {
                       const value = typeof row[column.id] === 'object' ? moment(row[column.id].toDate()).format('MM/DD/YYYY') : row[column.id];
                       return (
                         <TableCell key={column.id} align={column.align}>
-                          {column.format &&
-                            typeof value === 'number' ? column.format(value) : value}
+                          {column.format && typeof value === 'number' ? column.format(value) : value}
                         </TableCell>
                       );
                     })}
