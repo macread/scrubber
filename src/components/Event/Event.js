@@ -42,17 +42,19 @@ export default class Event extends Component {
   };
 
   handleChange = (select, key) => {
+    //create the column map, but make sure there are no duplicate column header enteries
     let columnMap = _.filter(this.state.columnMap, (o) => o.columnName !== select);
     columnMap.push({ columnName: select, columnId: key })
     const rows = _.map(this.state.regData, (row) => {
       let rowValues = {};
       for (let i = 0; i < columnMap.length; i++) {
-        rowValues = { ...rowValues, ...{ [columnMap[i].columnName]: row[columnMap[i].columnId] } }
+        rowValues = { ...rowValues, ...{ [columnMap[i].columnName]: row[columnMap[i].columnId] } } //merge the columns in to the scrubbed object array
       }
-      return (rowValues);
+      return (_.omitBy(rowValues, _.isNil)); //remove the undefined objects
     })
     this.setState({ rows, columnMap });
-    firestore.collection(auth.currentUser.uid).doc(this.eventId).update({ columnMap, scrubbedData: JSON.stringify(rows) })
+    console.log(rows)
+    firestore.collection(auth.currentUser.uid).doc(this.eventId).update({ columnMap, scrubbedData: rows })
       .catch((error) => {
         console.error(`Error updating document ${this.eventId}:`, error);
       });
