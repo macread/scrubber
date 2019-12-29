@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { makeStyles } from '@material-ui/core/styles';
 import InputLabel from '@material-ui/core/InputLabel';
 import MenuItem from '@material-ui/core/MenuItem';
@@ -18,7 +18,19 @@ const useStyles = makeStyles(theme => ({
 
 export default function SimpleSelect(props) {
   const classes = useStyles();
-  const [value, setValue] = React.useState('');
+  const [items, setItems] = useState(props.items);
+  const [label, setLabel] = useState(props.label);
+  const [toolTip, setToolTip] = useState(props.toolTip);
+  const [value, setValue] = useState(props.value);
+
+  useEffect(() => {
+    if (props) {
+      setItems(props.items);
+      setLabel(props.label);
+      setToolTip(props.toolTip);
+      setValue(props.value);
+    }
+  }, [props]);
 
   const handleChange = event => {
     setValue(event.target.value);
@@ -27,11 +39,11 @@ export default function SimpleSelect(props) {
 
   return (
     <Tooltip
-      aria-label={props.toolTip}
+      aria-label={toolTip}
       placement='right-end'
-      title={props.toolTip}>
+      title={toolTip}>
       <FormControl className={classes.formControl}>
-        <InputLabel id="demo-simple-select-helper-label">{props.label}</InputLabel>
+        <InputLabel id="demo-simple-select-helper-label">{label}</InputLabel>
         <Select
           labelId="demo-simple-select-helper-label"
           id="demo-simple-select-helper"
@@ -41,7 +53,7 @@ export default function SimpleSelect(props) {
           <MenuItem value="">
             <em>None</em>
           </MenuItem>
-          {props.items.map(item => (
+          {items.map(item => (
             <MenuItem key={item.value} value={item.value}>{item.option}</MenuItem>
           ))}
         </Select>

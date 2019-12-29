@@ -14,7 +14,7 @@ import DialogTitle from '@material-ui/core/DialogTitle';
 import DateFnsUtils from '@date-io/date-fns';
 import { MuiPickersUtilsProvider, KeyboardDatePicker } from '@material-ui/pickers';
 
-export default function FormDialog() {
+export default function UploadDialog() {
   const [open, setOpen] = React.useState(false);
   const [eventDate, setEventDate] = React.useState(new Date());
   const [eventName, setEventName] = React.useState();
