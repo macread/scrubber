@@ -7,6 +7,7 @@ import { BrowserRouter, Switch, Route } from "react-router-dom";
 import Event from '../Event';
 import HomeContent from '../HomeContent';
 import NotFoundContent from '../NotFoundContent';
+import UploadPlointsLists from '../UploadPointsLists';
 
 class Router extends Component {
   render() {
@@ -17,6 +18,7 @@ class Router extends Component {
       <BrowserRouter>
         <Switch>
           <Route path="/" exact render={() => (<HomeContent signedIn={signedIn} />)} />
+          <Route path="/points" exact render={() => (<UploadPlointsLists signedIn={signedIn} />)} />
           <Route path="/event/:eventId" render={(props) => <Event {...props} signedIn={signedIn} />} />
           <Route component={NotFoundContent} />
         </Switch>

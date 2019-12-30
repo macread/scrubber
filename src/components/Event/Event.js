@@ -53,7 +53,6 @@ export default class Event extends Component {
       return (_.omitBy(rowValues, _.isNil)); //remove the undefined objects
     })
     this.setState({ rows, columnMap });
-    console.log(rows)
     firestore.collection(auth.currentUser.uid).doc(this.eventId).update({ columnMap, scrubbedData: rows })
       .catch((error) => {
         console.error(`Error updating document ${this.eventId}:`, error);
