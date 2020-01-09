@@ -2,9 +2,37 @@ import React, { Component } from 'react';
 
 import { auth, firestore } from '../../firebase';
 import _ from 'lodash';
+import moment from 'moment';
 
+import Button from '@material-ui/core/Button';
 import EventTable from './EventTable';
 import SimpleSelect from '../SimpleSelect';
+
+const USSS = {
+  LAST_NAME: 'A',
+  FIRST_NAME: 'B',
+  DIVISION: 'C',
+  USSA_ID: 'D',
+  GENDER: 'E',
+  YOB: 'F',
+  SPRINT: 'G',
+  DISTANCE: 'H',
+  OVERALL: 'I',
+  FIS_CODE: 'J',
+};
+
+const FIS = {
+  GENDER: 'A',
+  FIS_CODE: 'B',
+  LAST_NAME: 'C',
+  FIRST_NAME: 'D',
+  NATION: 'E',
+  YOB: 'F',
+  SPRINT: 'G',
+  DISTANCE: 'H',
+  USSA_ID: 'I',
+  DIVISION: 'J',
+};
 
 export default class Event extends Component {
   constructor(props) {
@@ -16,8 +44,14 @@ export default class Event extends Component {
       regData: [],
       rows: [],
       columnMap: [],
+      usssPointsList: [],
+      fisPointsList: [],
+      disableScrubButton: false,
     };
   };
+
+
+
 
   componentDidMount() {
     firestore.collection(auth.currentUser.uid).doc(this.eventId).get()
@@ -40,11 +74,31 @@ export default class Event extends Component {
       })
       .catch((err) => console.log('Error getting event: ', err));
 
-    firestore.collection('points').doc('ussswomen').get()
+    firestore.collection('points').doc('usssWomen').get()
       .then((doc) => {
-
+        this.setState({ usssPointsList: doc.data().pointsList })
       })
-      .catch((err) => console.log('Error getting USSS Women Points List: ', err));
+      .catch((err) => console.log("Error getting USSS Women's Points List: ", err));
+
+    firestore.collection('points').doc('usssMen').get()
+      .then((doc) => {
+        const pointsList = _.concat(this.state.usssPointsList, _.slice(doc.data().pointsList, 1));
+        this.setState({ usssPointsList: pointsList })
+      })
+      .catch((err) => console.log("Error getting USSS Men's Points List: ", err));
+
+    firestore.collection('points').doc('fisWomen').get()
+      .then((doc) => {
+        this.setState({ fisPointsList: doc.data().pointsList })
+      })
+      .catch((err) => console.log("Error getting FIS Women's Points List: ", err));
+
+    firestore.collection('points').doc('usssMen').get()
+      .then((doc) => {
+        const pointsList = _.concat(this.state.fisPointsList, _.slice(doc.data().pointsList, 1));
+        this.setState({ fisPointsList: pointsList })
+      })
+      .catch((err) => console.log("Error getting FIS Men's Points List: ", err));
   };
 
   handleChange = (select, key) => {
@@ -65,6 +119,43 @@ export default class Event extends Component {
       });
   };
 
+  handleScrubClick = () => {
+    const scrubbedRows = _.map(this.state.rows, (row) => {
+      let usssPoints = _.find(this.state.usssPointsList, [USSS.USSA_ID, row.usssLicense]);
+      let error = usssPoints ? '' : 'Unknown USSS License Number\r';
+      error = usssPoints ? this.verifyName(error, row, usssPoints, USSS) : error;
+      let fisPoints = _.find(this.state.fisPointsList, [FIS.FIS_CODE, row.fisLicense]);
+      error = fisPoints ? error : 'Unknown FIS License Number\r';
+      error = fisPoints ? this.verifyName(error, row, fisPoints, FIS) : error;
+      let country = _.get(fisPoints, FIS.NATION, (usssPoints ? 'USA' : ''));
+      return ({
+        lastName: row.lastName,
+        firstName: row.firstName,
+        club: row.club,
+        birthDate: row.birthDate,
+        usssLicense: row.usssLicense,
+        usssSprintPoints: _.get(usssPoints, USSS.SPRINT, ''),
+        usssDistancePoints: _.get(usssPoints, USSS.DISTANCE, ''),
+        division: _.get(usssPoints, USSS.DIVISION, ''),
+        fisLicense: row.fisLicense,
+        fisSprintPoints: _.get(fisPoints, FIS.SPRINT, ''),
+        fisDistancePoints: _.get(fisPoints, FIS.DISTANCE, ''),
+        country,
+        error,
+      });
+    });
+    this.setState({ rows: scrubbedRows });
+  }
+
+  verifyName = (error, regData, pointsData, type) => {
+    error += regData.firstName.toLowerCase() !== pointsData[type.FIRST_NAME].toLowerCase() ? 'First Names do not match\r' : '';
+    error += regData.lastName.toLowerCase() !== pointsData[type.LAST_NAME].toLowerCase() ? 'Last Names do not match\r' : '';
+    error += moment(regData.birthDate.toDate()).format('YYYY') != pointsData[type.YOB] ? 'Birth Years do not match\r' : '';
+    error += regData.gender !== pointsData[type.GENDER] ? 'Genders do not match\r' : '';
+
+    return error;
+  }
+
   render() {
     return (
       <div>
@@ -84,10 +175,10 @@ export default class Event extends Component {
         />
         <SimpleSelect
           items={this.state.menuItems}
-          label='Club'
-          onChange={(key) => this.handleChange('club', key)}
-          toolTip="Select the column that contains the athlete's club"
-          value={_.get(_.find(this.state.columnMap, (o) => o.columnName === 'club'), 'columnId', '')}
+          label='Gender'
+          onChange={(key) => this.handleChange('gender', key)}
+          toolTip="Select the column that contains the athlete's gender"
+          value={_.get(_.find(this.state.columnMap, (o) => o.columnName === 'gender'), 'columnId', '')}
         />
         <SimpleSelect
           items={this.state.menuItems}
@@ -95,6 +186,13 @@ export default class Event extends Component {
           onChange={(key) => this.handleChange('birthDate', key)}
           toolTip="Select the column that contains the athlete's birth date"
           value={_.get(_.find(this.state.columnMap, (o) => o.columnName === 'birthDate'), 'columnId', '')}
+        />
+        <SimpleSelect
+          items={this.state.menuItems}
+          label='Club'
+          onChange={(key) => this.handleChange('club', key)}
+          toolTip="Select the column that contains the athlete's club"
+          value={_.get(_.find(this.state.columnMap, (o) => o.columnName === 'club'), 'columnId', '')}
         />
         <SimpleSelect
           items={this.state.menuItems}
@@ -110,6 +208,9 @@ export default class Event extends Component {
           toolTip="Select the column that contains the athlete's FIS License Number"
           value={_.get(_.find(this.state.columnMap, (o) => o.columnName === 'fisLicense'), 'columnId', '')}
         />
+        <Button onClick={this.handleScrubClick} color="primary" disabled={this.state.disableScrubButton} >
+          Scrub
+        </Button>
         <EventTable columns={this.state.columns} rows={this.state.rows} />
       </div>
     );

@@ -15,8 +15,9 @@ import TableRow from '@material-ui/core/TableRow';
 const columns = [
   { id: 'lastName', label: 'Last Name', minWidth: 100 },
   { id: 'firstName', label: 'First Name', minWidth: 100 },
-  { id: 'club', label: 'Club', minWidth: 200 },
+  { id: 'gender', label: 'Gender', minWidth: 50 },
   { id: 'birthDate', label: 'Birth Date', minWidth: 100 },
+  { id: 'club', label: 'Club', minWidth: 200 },
   { id: 'usssLicense', label: 'USSS License', minWidth: 50 },
   { id: 'usssSprintPoints', label: 'Sprint Points', minWidth: 50 },
   { id: 'usssDistancePoints', label: 'Distance Points', minWidth: 50 },
