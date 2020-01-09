@@ -4,6 +4,7 @@ import { withStyles } from '@material-ui/core/styles';
 import EmptyState from '../EmptyState';
 import Events from '../Events';
 import UploadDialog from '../UploadDialog';
+import UploadPointsLists from '../UploadPointsLists';
 import { auth, firestore } from '../../firebase';
 
 
@@ -62,6 +63,7 @@ class HomeContent extends Component {
       return (
         <>
           <UploadDialog />
+          <UploadPointsLists />
           <Events events={this.state.events} />
         </>
 

@@ -1,5 +1,6 @@
 {
   "projects": {
-    "default": "react-material-ui-firebase"
+    "default": "react-material-ui-firebase",
+    "development": "aksel-7ffa3"
   }
 }

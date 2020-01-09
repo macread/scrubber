@@ -39,6 +39,12 @@ export default class Event extends Component {
         this.setState({ columns, menuItems });
       })
       .catch((err) => console.log('Error getting event: ', err));
+
+    firestore.collection('points').doc('ussswomen').get()
+      .then((doc) => {
+
+      })
+      .catch((err) => console.log('Error getting USSS Women Points List: ', err));
   };
 
   handleChange = (select, key) => {

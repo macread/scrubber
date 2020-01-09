@@ -35,7 +35,12 @@ export default function UploadDialog() {
   };
 
   const handleClose = () => {
+    setDisableSaveButton(true);
+    setFiles([]);
+    setFileTypes([]);
     setOpen(false);
+    setType('');
+    setValue('');
   };
 
   const handleDrop = (files) => {
@@ -56,9 +61,8 @@ export default function UploadDialog() {
         const data = new Uint8Array(reader.result);
         const workbook = XLSX.read(data, { type: 'array', cellDates: true, dateNF: 'yyyy/mm/dd;@' });
         const pointsList = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]], { header: "A" });
-
-        firestore.collection('points').doc(fileTypes[i]).set({
-          pointsList,
+        firestore.collection('points').doc(fileTypes[i]).update({
+          pointsList: pointsList,
         })
           .then((docRef) => {
             console.log('Document written with ID: ', docRef.id);
@@ -83,7 +87,7 @@ export default function UploadDialog() {
   return (
     <div>
       <Button variant="outlined" color="primary" onClick={handleClickOpen}>
-        Upload data for new event
+        Upload Points List
       </Button>
       <Dialog open={open} onClose={handleClose} aria-labelledby="form-dialog-title">
         <DialogTitle id="form-dialog-title">Load Points List</DialogTitle>
