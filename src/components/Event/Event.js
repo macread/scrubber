@@ -19,6 +19,7 @@ const USSS = {
   DISTANCE: 'H',
   OVERALL: 'I',
   FIS_CODE: 'J',
+  NAME: 'USSS',
 };
 
 const FIS = {
@@ -32,6 +33,7 @@ const FIS = {
   DISTANCE: 'H',
   USSA_ID: 'I',
   DIVISION: 'J',
+  NAME: 'FIS',
 };
 
 export default class Event extends Component {
@@ -148,10 +150,10 @@ export default class Event extends Component {
   }
 
   verifyName = (error, regData, pointsData, type) => {
-    error += regData.firstName.toLowerCase() !== pointsData[type.FIRST_NAME].toLowerCase() ? 'First Names do not match\r' : '';
-    error += regData.lastName.toLowerCase() !== pointsData[type.LAST_NAME].toLowerCase() ? 'Last Names do not match\r' : '';
-    error += moment(regData.birthDate.toDate()).format('YYYY') != pointsData[type.YOB] ? 'Birth Years do not match\r' : '';
-    error += regData.gender !== pointsData[type.GENDER] ? 'Genders do not match\r' : '';
+    error += regData.firstName.toLowerCase() !== pointsData[type.FIRST_NAME].toLowerCase() ? type.NAME + ' First Names do not match. ' : '';
+    error += regData.lastName.toLowerCase() !== pointsData[type.LAST_NAME].toLowerCase() ? type.NAME + ' Last Names do not match. ' : '';
+    error += moment(regData.birthDate.toDate()).format('YYYY') !== pointsData[type.YOB].toString() ? type.NAME + ' Birth Years do not match. ' : '';
+    error += regData.gender !== pointsData[type.GENDER] ? type.NAME + ' Genders do not match. ' : '';
 
     return error;
   }

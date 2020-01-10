@@ -11,6 +11,7 @@ import TableContainer from '@material-ui/core/TableContainer';
 import TableHead from '@material-ui/core/TableHead';
 import TablePagination from '@material-ui/core/TablePagination';
 import TableRow from '@material-ui/core/TableRow';
+import Tooltip from '@material-ui/core/Tooltip';
 
 const columns = [
   { id: 'lastName', label: 'Last Name', minWidth: 100 },
@@ -37,6 +38,9 @@ const useStyles = makeStyles({
   },
   table: {
     minWidth: 650,
+  },
+  tableRow: {
+    backgroundColor: 'khaki',
   },
 });
 
@@ -85,16 +89,18 @@ export default function EventTable(props) {
             {rows.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((row, i) => {
               return (
                 i > 0 ? (
-                  <TableRow hover role="checkbox" tabIndex={-1} key={i}>
-                    {columns.map(column => {
-                      const value = typeof row[column.id] === 'object' ? moment(row[column.id].toDate()).format('MM/DD/YYYY') : row[column.id];
-                      return (
-                        <TableCell key={column.id} align={column.align}>
-                          {column.format && typeof value === 'number' ? column.format(value) : value}
-                        </TableCell>
-                      );
-                    })}
-                  </TableRow>
+                  <Tooltip title={row.error}>
+                    <TableRow hover role="checkbox" tabIndex={-1} key={i} className={row.error ? (row.error !== '' ? classes.tableRow : null) : null}>
+                      {columns.map(column => {
+                        const value = typeof row[column.id] === 'object' ? moment(row[column.id].toDate()).format('MM/DD/YYYY') : row[column.id];
+                        return (
+                          <TableCell key={column.id} align={column.align}>
+                            {column.format && typeof value === 'number' ? column.format(value) : value}
+                          </TableCell>
+                        );
+                      })}
+                    </TableRow>
+                  </Tooltip>
                 ) : null
               );
             })}
