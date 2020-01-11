@@ -5,6 +5,8 @@ import _ from 'lodash';
 import moment from 'moment';
 
 import Button from '@material-ui/core/Button';
+import Checkbox from '@material-ui/core/Checkbox';
+import FormControlLabel from '@material-ui/core/FormControlLabel';
 import EventTable from './EventTable';
 import SimpleSelect from '../SimpleSelect';
 
@@ -41,6 +43,7 @@ export default class Event extends Component {
     super(props);
     this.eventId = props.match.params.eventId;
     this.state = {
+      checkFISNumbers: false,
       columns: [],
       menuItems: [],
       regData: [],
@@ -123,12 +126,15 @@ export default class Event extends Component {
 
   handleScrubClick = () => {
     const scrubbedRows = _.map(this.state.rows, (row) => {
+      let fisPoints = null;
       let usssPoints = _.find(this.state.usssPointsList, [USSS.USSA_ID, row.usssLicense]);
       let error = usssPoints ? '' : 'Unknown USSS License Number\r';
       error = usssPoints ? this.verifyName(error, row, usssPoints, USSS) : error;
-      let fisPoints = _.find(this.state.fisPointsList, [FIS.FIS_CODE, row.fisLicense]);
-      error = fisPoints ? error : 'Unknown FIS License Number\r';
-      error = fisPoints ? this.verifyName(error, row, fisPoints, FIS) : error;
+      if (this.state.checkFISNumbers) {
+        fisPoints = _.find(this.state.fisPointsList, [FIS.FIS_CODE, row.fisLicense]);
+        error = fisPoints ? error : 'Unknown FIS License Number\r';
+        error = fisPoints ? this.verifyName(error, row, fisPoints, FIS) : error;
+      }
       let country = _.get(fisPoints, FIS.NATION, (usssPoints ? 'USA' : ''));
       return ({
         lastName: row.lastName,
@@ -156,6 +162,10 @@ export default class Event extends Component {
     error += regData.gender !== pointsData[type.GENDER] ? type.NAME + ' Genders do not match. ' : '';
 
     return error;
+  }
+
+  handleCheckFISNumbers = () => {
+    this.setState({ checkFISNumbers: !this.state.checkFISNumbers });
   }
 
   render() {
@@ -209,6 +219,17 @@ export default class Event extends Component {
           onChange={(key) => this.handleChange('fisLicense', key)}
           toolTip="Select the column that contains the athlete's FIS License Number"
           value={_.get(_.find(this.state.columnMap, (o) => o.columnName === 'fisLicense'), 'columnId', '')}
+        />
+        <FormControlLabel
+          control={
+            <Checkbox
+              checked={this.state.checkFISNumbers}
+              onChange={this.handleCheckFISNumbers}
+              value={this.state.checkFISNumbers}
+              color="primary"
+            />
+          }
+          label="Check FIS Numbers"
         />
         <Button onClick={this.handleScrubClick} color="primary" disabled={this.state.disableScrubButton} >
           Scrub
