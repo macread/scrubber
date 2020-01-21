@@ -5,10 +5,10 @@ import _ from 'lodash';
 import moment from 'moment';
 
 import Button from '@material-ui/core/Button';
-import Checkbox from '@material-ui/core/Checkbox';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
 import EventTable from './EventTable';
 import SimpleSelect from '../SimpleSelect';
+import Switch from '@material-ui/core/Switch';
 
 const USSS = {
   LAST_NAME: 'A',
@@ -52,32 +52,12 @@ export default class Event extends Component {
       usssPointsList: [],
       fisPointsList: [],
       disableScrubButton: false,
+      showErrors: false,
     };
   };
 
-
-
-
   componentDidMount() {
-    firestore.collection(auth.currentUser.uid).doc(this.eventId).get()
-      .then((doc) => {
-        this.setState({ regData: doc.data().regData, columnMap: doc.data().columnMap || [], rows: doc.data().scrubbedData || [] });
-        const keys = Object.keys(this.state.regData[0]);
-        const columns = keys.map((key) => {
-          let col = {};
-          col.id = key;
-          col.label = this.state.regData[0][key];
-          return col;
-        });
-        const menuItems = columns.map((column) => {
-          let item = {};
-          item.value = column.id;
-          item.option = column.label;
-          return item;
-        })
-        this.setState({ columns, menuItems });
-      })
-      .catch((err) => console.log('Error getting event: ', err));
+    this.getRegData();
 
     firestore.collection('points').doc('usssWomen').get()
       .then((doc) => {
@@ -106,6 +86,28 @@ export default class Event extends Component {
       .catch((err) => console.log("Error getting FIS Men's Points List: ", err));
   };
 
+  getRegData() {
+    firestore.collection(auth.currentUser.uid).doc(this.eventId).get()
+      .then((doc) => {
+        this.setState({ regData: doc.data().regData, columnMap: doc.data().columnMap || [], rows: doc.data().scrubbedData || [] });
+        const keys = Object.keys(this.state.regData[0]);
+        const columns = keys.map((key) => {
+          let col = {};
+          col.id = key;
+          col.label = this.state.regData[0][key];
+          return col;
+        });
+        const menuItems = columns.map((column) => {
+          let item = {};
+          item.value = column.id;
+          item.option = column.label;
+          return item;
+        })
+        this.setState({ columns, menuItems });
+      })
+      .catch((err) => console.log('Error getting event: ', err));
+  }
+
   handleChange = (select, key) => {
     //create the column map, but make sure there are no duplicate column header enteries
     let columnMap = _.filter(this.state.columnMap, (o) => o.columnName !== select);
@@ -124,35 +126,53 @@ export default class Event extends Component {
       });
   };
 
+  handleCheckFISNumbers = () => {
+    this.setState({ checkFISNumbers: !this.state.checkFISNumbers });
+  }
+
   handleScrubClick = () => {
-    const scrubbedRows = _.map(this.state.rows, (row) => {
+    const scrubbedRows = _.map(this.state.rows, (row, id) => {
       let fisPoints = null;
       let usssPoints = _.find(this.state.usssPointsList, [USSS.USSA_ID, row.usssLicense]);
-      let error = usssPoints ? '' : 'Unknown USSS License Number\r';
+      let error = usssPoints ? '' : 'Unknown USSS License Number';
       error = usssPoints ? this.verifyName(error, row, usssPoints, USSS) : error;
       if (this.state.checkFISNumbers) {
         fisPoints = _.find(this.state.fisPointsList, [FIS.FIS_CODE, row.fisLicense]);
-        error = fisPoints ? error : 'Unknown FIS License Number\r';
+        error = fisPoints ? error : 'Unknown FIS License Number';
         error = fisPoints ? this.verifyName(error, row, fisPoints, FIS) : error;
       }
       let country = _.get(fisPoints, FIS.NATION, (usssPoints ? 'USA' : ''));
       return ({
-        lastName: row.lastName,
-        firstName: row.firstName,
-        club: row.club,
-        birthDate: row.birthDate,
-        usssLicense: row.usssLicense,
+        lastName: _.get(row, 'lastName', ''),
+        firstName: _.get(row, 'firstName', ''),
+        club: _.get(row, 'club', ''),
+        birthDate: _.get(row, 'birthDate', ''),
+        usssLicense: _.get(row, 'usssLicense', ''),
         usssSprintPoints: _.get(usssPoints, USSS.SPRINT, ''),
         usssDistancePoints: _.get(usssPoints, USSS.DISTANCE, ''),
         division: _.get(usssPoints, USSS.DIVISION, ''),
-        fisLicense: row.fisLicense,
+        fisLicense: _.get(row, 'fisLicense', ''),
         fisSprintPoints: _.get(fisPoints, FIS.SPRINT, ''),
         fisDistancePoints: _.get(fisPoints, FIS.DISTANCE, ''),
         country,
         error,
+        id,
       });
     });
     this.setState({ rows: scrubbedRows });
+    firestore.collection(auth.currentUser.uid).doc(this.eventId).update({ scrubbedData: scrubbedRows })
+      .catch((error) => {
+        console.error(`Error updating document ${this.eventId}:`, error);
+      });
+  }
+
+  handleShowErrors = () => {
+    if (!this.state.showErrors) {
+      this.setState({ rows: _.filter(this.state.rows, (row) => row.error !== '') });
+    } else {
+      this.getRegData();
+    }
+    this.setState({ showErrors: !this.state.showErrors });
   }
 
   verifyName = (error, regData, pointsData, type) => {
@@ -162,10 +182,6 @@ export default class Event extends Component {
     error += regData.gender !== pointsData[type.GENDER] ? type.NAME + ' Genders do not match. ' : '';
 
     return error;
-  }
-
-  handleCheckFISNumbers = () => {
-    this.setState({ checkFISNumbers: !this.state.checkFISNumbers });
   }
 
   render() {
@@ -222,7 +238,7 @@ export default class Event extends Component {
         />
         <FormControlLabel
           control={
-            <Checkbox
+            <Switch
               checked={this.state.checkFISNumbers}
               onChange={this.handleCheckFISNumbers}
               value={this.state.checkFISNumbers}
@@ -230,6 +246,17 @@ export default class Event extends Component {
             />
           }
           label="Check FIS Numbers"
+        />
+        <FormControlLabel
+          control={
+            <Switch
+              checked={this.state.showErrors}
+              onChange={this.handleShowErrors}
+              value={this.state.showErrors}
+              color="primary"
+            />
+          }
+          label="Show Errors"
         />
         <Button onClick={this.handleScrubClick} color="primary" disabled={this.state.disableScrubButton} >
           Scrub
