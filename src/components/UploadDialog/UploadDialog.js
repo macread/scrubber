@@ -81,7 +81,7 @@ export default function UploadDialog() {
         Upload data for new event
       </Button>
       <Dialog open={open} onClose={handleClose} aria-labelledby="form-dialog-title">
-        <DialogTitle id="form-dialog-title">Subscribe</DialogTitle>
+        <DialogTitle id="form-dialog-title">Upload Event Data</DialogTitle>
         <DialogContent>
 
           <DropzoneArea

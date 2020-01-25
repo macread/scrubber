@@ -13,6 +13,8 @@ import TablePagination from '@material-ui/core/TablePagination';
 import TableRow from '@material-ui/core/TableRow';
 import Tooltip from '@material-ui/core/Tooltip';
 
+import ParticipantDialog from '../../ParticipantDialog';
+
 const columns = [
   { id: 'lastName', label: 'Last Name', minWidth: 100 },
   { id: 'firstName', label: 'First Name', minWidth: 100 },
@@ -46,8 +48,10 @@ const useStyles = makeStyles({
 
 export default function EventTable(props) {
   const classes = useStyles();
+  const [openParticipantDialog, setOpenParticipantDialog] = useState(false);
   const [page, setPage] = useState(0);
   const [rows, setRows] = useState([]);
+  const [row, setRow] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
 
   useEffect(() => {
@@ -63,8 +67,18 @@ export default function EventTable(props) {
     setPage(0);
   };
 
+  const handleOpenParticipantDialog = (row) => {
+    setRow(row);
+    toggleParticipantDialog();
+  }
+
+  const toggleParticipantDialog = () => {
+    setOpenParticipantDialog(!openParticipantDialog)
+  }
+
   return (
     <Paper className={classes.root}>
+      <ParticipantDialog open={openParticipantDialog} row={row} toggleParticipantDialog={toggleParticipantDialog} />
       <TableContainer className={classes.container}>
         <Table
           aria-label="athlete table"
@@ -89,8 +103,14 @@ export default function EventTable(props) {
             {rows.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((row, i) => {
               return (
                 i > 0 ? (
-                  <Tooltip title={row.error}>
-                    <TableRow hover role="checkbox" tabIndex={-1} key={i} className={row.error ? (row.error !== '' ? classes.tableRow : null) : null}>
+                  <Tooltip key={i} title={row.error}>
+                    <TableRow
+                      className={row.error ? (row.error !== '' ? classes.tableRow : null) : null}
+                      hover role="checkbox"
+                      key={i}
+                      onClick={() => handleOpenParticipantDialog(row)}
+                      tabIndex={-1}
+                    >
                       {columns.map(column => {
                         const value = typeof row[column.id] === 'object' ? moment(row[column.id].toDate()).format('MM/DD/YYYY') : row[column.id];
                         return (
