@@ -50,8 +50,8 @@ export default function EventTable(props) {
   const classes = useStyles();
   const [openParticipantDialog, setOpenParticipantDialog] = useState(false);
   const [page, setPage] = useState(0);
+  const [participantRow, setParticipantRow] = useState({});
   const [rows, setRows] = useState([]);
-  const [row, setRow] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
 
   useEffect(() => {
@@ -68,17 +68,18 @@ export default function EventTable(props) {
   };
 
   const handleOpenParticipantDialog = (row) => {
-    setRow(row);
+    row.birthDate = typeof row.birthDate === 'string' ? row.birthDate : moment(row.birthDate.toDate()).format('YYYY-MM-DD');
+    setParticipantRow(row);
     toggleParticipantDialog();
   }
 
   const toggleParticipantDialog = () => {
-    setOpenParticipantDialog(!openParticipantDialog)
+    setOpenParticipantDialog(!openParticipantDialog);
   }
 
   return (
     <Paper className={classes.root}>
-      <ParticipantDialog open={openParticipantDialog} row={row} toggleParticipantDialog={toggleParticipantDialog} />
+      <ParticipantDialog open={openParticipantDialog} row={participantRow} toggleParticipantDialog={toggleParticipantDialog} />
       <TableContainer className={classes.container}>
         <Table
           aria-label="athlete table"
@@ -108,7 +109,7 @@ export default function EventTable(props) {
                       className={row.error ? (row.error !== '' ? classes.tableRow : null) : null}
                       hover role="checkbox"
                       key={i}
-                      onClick={() => handleOpenParticipantDialog(row)}
+                      onClick={(e) => handleOpenParticipantDialog(row)}
                       tabIndex={-1}
                     >
                       {columns.map(column => {

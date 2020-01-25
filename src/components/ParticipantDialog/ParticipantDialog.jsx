@@ -1,16 +1,20 @@
 import React, { useEffect, useState } from 'react';
 
-
 import { firestore } from '../../firebase';
 
 import _ from 'lodash';
+import moment from 'moment';
 
 import Button from '@material-ui/core/Button';
+import DateFnsUtils from '@date-io/date-fns';
 import Dialog from '@material-ui/core/Dialog';
 import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
 import DialogTitle from '@material-ui/core/DialogTitle';
-import { KeyboardDatePicker } from '@material-ui/pickers';
+import {
+  MuiPickersUtilsProvider,
+  KeyboardDatePicker,
+} from '@material-ui/pickers';
 import TextField from '@material-ui/core/TextField';
 import Typography from '@material-ui/core/Typography';
 import { makeStyles } from '@material-ui/core/styles';
@@ -86,6 +90,9 @@ export default function UploadDialog(props) {
 
   const handleChange = (e, field) => {
     switch (field) {
+      case 'birthDate':
+        // setBirthDate()
+        break;
       case 'firstName':
         setFirstName(e.target.value);
         break;
@@ -126,19 +133,21 @@ export default function UploadDialog(props) {
             onChange={(e) => handleChange(e, 'lastName')}
             value={lastName}
           />
-          {/* <KeyboardDatePicker
-            disableToolbar
-            variant="inline"
-            format="MM/dd/yyyy"
-            margin="normal"
-            id="birthDate"
-            label="Birth Date"
-            value={birthDate}
-            onChange={(e) => handleChange(e, 'birthDate')}
-            KeyboardButtonProps={{
-              'aria-label': 'change date',
-            }}
-          /> */}
+          <MuiPickersUtilsProvider utils={DateFnsUtils}>
+            <KeyboardDatePicker
+              disableToolbar
+              variant="inline"
+              format="MM/dd/yyyy"
+              margin="normal"
+              id="birthDate"
+              label="Birth Date"
+              value={birthDate}
+              onChange={(e) => handleChange(e, 'birthDate')}
+              KeyboardButtonProps={{
+                'aria-label': 'change date',
+              }}
+            />
+          </MuiPickersUtilsProvider>
         </DialogContent>
         <DialogActions>
           <Button onClick={handleClose} color="primary">
