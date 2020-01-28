@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 
 import { auth, firestore } from '../../firebase';
 import _ from 'lodash';
@@ -38,63 +38,32 @@ const FIS = {
   NAME: 'FIS',
 };
 
-export default class Event extends Component {
-  constructor(props) {
-    super(props);
-    this.eventId = props.match.params.eventId;
-    this.state = {
-      checkFISNumbers: false,
-      columns: [],
-      menuItems: [],
-      regData: [],
-      rows: [],
-      columnMap: [],
-      usssPointsList: [],
-      fisPointsList: [],
-      disableScrubButton: false,
-      showErrors: false,
-    };
-  };
+export default function Event(props) {
+  // const [eventId, setEventId] = useState();
+  const [checkFISNumbers, setCheckFISNumbers] = useState(false);
+  const [columns, setColumns] = useState([]);
+  const [menuItems, setMenuItems] = useState([]);
+  const [regData, setRegData] = useState([]);
+  const [rows, setRows] = useState([]);
+  const [columnMap, setColumnMap] = useState([]);
+  const [usssPointsList, setUsssPointsList] = useState([]);
+  const [fisPointsList, setFisPointsList] = useState([]);
+  const [disableScrubButton, setDisableScrubButton] = useState(false);
+  const [showErrors, setShowErrors] = useState(false);
 
-  componentDidMount() {
-    this.getRegData();
+  const { eventId } = props.match.params;
 
-    firestore.collection('points').doc('usssWomen').get()
+  const getRegData = useCallback(() => {
+    firestore.collection(auth.currentUser.uid).doc(eventId).get()
       .then((doc) => {
-        this.setState({ usssPointsList: doc.data().pointsList })
-      })
-      .catch((err) => console.log("Error getting USSS Women's Points List: ", err));
-
-    firestore.collection('points').doc('usssMen').get()
-      .then((doc) => {
-        const pointsList = _.concat(this.state.usssPointsList, _.slice(doc.data().pointsList, 1));
-        this.setState({ usssPointsList: pointsList })
-      })
-      .catch((err) => console.log("Error getting USSS Men's Points List: ", err));
-
-    firestore.collection('points').doc('fisWomen').get()
-      .then((doc) => {
-        this.setState({ fisPointsList: doc.data().pointsList })
-      })
-      .catch((err) => console.log("Error getting FIS Women's Points List: ", err));
-
-    firestore.collection('points').doc('usssMen').get()
-      .then((doc) => {
-        const pointsList = _.concat(this.state.fisPointsList, _.slice(doc.data().pointsList, 1));
-        this.setState({ fisPointsList: pointsList })
-      })
-      .catch((err) => console.log("Error getting FIS Men's Points List: ", err));
-  };
-
-  getRegData() {
-    firestore.collection(auth.currentUser.uid).doc(this.eventId).get()
-      .then((doc) => {
-        this.setState({ regData: doc.data().regData, columnMap: doc.data().columnMap || [], rows: doc.data().scrubbedData || [] });
-        const keys = Object.keys(this.state.regData[0]);
+        setRegData(doc.data().regData);
+        setColumnMap(doc.data().columnMap || []);
+        setRows(doc.data().scrubbedData || []);
+        const keys = Object.keys(regData[0]);
         const columns = keys.map((key) => {
           let col = {};
           col.id = key;
-          col.label = this.state.regData[0][key];
+          col.label = regData[0][key];
           return col;
         });
         const menuItems = columns.map((column) => {
@@ -103,43 +72,74 @@ export default class Event extends Component {
           item.option = column.label;
           return item;
         })
-        this.setState({ columns, menuItems });
+        setColumns(columns);
+        setMenuItems(menuItems);
       })
       .catch((err) => console.log('Error getting event: ', err));
-  }
+  }, [eventId, regData]);
 
-  handleChange = (select, key) => {
+  useEffect(() => {
+    // setEventId(props.match.params.eventId);
+    // console.log(auth.currentUser.uid, eventId, .eventId);
+
+    getRegData();
+
+    firestore.collection('points').doc('usssWomen').get()
+      .then((doc) => {
+        setUsssPointsList(doc.data().pointsList);
+      })
+      .catch((err) => console.log("Error getting USSS Women's Points List: ", err));
+
+    firestore.collection('points').doc('usssMen').get()
+      .then((doc) => {
+        const pointsList = _.concat(usssPointsList, _.slice(doc.data().pointsList, 1));
+        setUsssPointsList(pointsList);
+      })
+      .catch((err) => console.log("Error getting USSS Men's Points List: ", err));
+
+    firestore.collection('points').doc('fisWomen').get()
+      .then((doc) => {
+        setFisPointsList(doc.data().pointsList);
+      })
+      .catch((err) => console.log("Error getting FIS Women's Points List: ", err));
+
+    firestore.collection('points').doc('usssMen').get()
+      .then((doc) => {
+        const pointsList = _.concat(fisPointsList, _.slice(doc.data().pointsList, 1));
+        setFisPointsList(pointsList);
+      })
+      .catch((err) => console.log("Error getting FIS Men's Points List: ", err));
+  }, [getRegData, props.eventId, usssPointsList, fisPointsList, props.match.params.eventId]);
+
+  const handleChange = (select, key) => {
     //create the column map, but make sure there are no duplicate column header enteries
-    let columnMap = _.filter(this.state.columnMap, (o) => o.columnName !== select);
-    columnMap.push({ columnName: select, columnId: key })
-    const rows = _.map(this.state.regData, (row) => {
+    let colMap = _.filter(columnMap, (o) => o.columnName !== select);
+    colMap.push({ columnName: select, columnId: key })
+    const rows = _.map(regData, (row) => {
       let rowValues = {};
-      for (let i = 0; i < columnMap.length; i++) {
+      for (let i = 0; i < colMap.length; i++) {
         rowValues = { ...rowValues, ...{ [columnMap[i].columnName]: row[columnMap[i].columnId] } } //merge the columns in to the scrubbed object array
       }
       return (_.omitBy(rowValues, _.isNil)); //remove the undefined objects
     })
-    this.setState({ rows, columnMap });
-    firestore.collection(auth.currentUser.uid).doc(this.eventId).update({ columnMap, scrubbedData: rows })
+    setRows(rows);
+    setColumnMap(columnMap);
+    firestore.collection(auth.currentUser.uid).doc(eventId).update({ columnMap, scrubbedData: rows })
       .catch((error) => {
-        console.error(`Error updating document ${this.eventId}:`, error);
+        console.error(`Error updating document ${eventId}:`, error);
       });
   };
 
-  handleCheckFISNumbers = () => {
-    this.setState({ checkFISNumbers: !this.state.checkFISNumbers });
-  }
-
-  handleScrubClick = () => {
-    const scrubbedRows = _.map(this.state.rows, (row, id) => {
+  const handleScrubClick = () => {
+    const scrubbedRows = _.map(rows, (row, id) => {
       let fisPoints = null;
-      let usssPoints = _.find(this.state.usssPointsList, [USSS.USSA_ID, row.usssLicense]);
+      let usssPoints = _.find(usssPointsList, [USSS.USSA_ID, row.usssLicense]);
       let error = usssPoints ? '' : 'Unknown USSS License Number';
-      error = usssPoints ? this.verifyName(error, row, usssPoints, USSS) : error;
-      if (this.state.checkFISNumbers) {
-        fisPoints = _.find(this.state.fisPointsList, [FIS.FIS_CODE, row.fisLicense]);
+      error = usssPoints ? verifyName(error, row, usssPoints, USSS) : error;
+      if (checkFISNumbers) {
+        fisPoints = _.find(fisPointsList, [FIS.FIS_CODE, row.fisLicense]);
         error = fisPoints ? error : 'Unknown FIS License Number';
-        error = fisPoints ? this.verifyName(error, row, fisPoints, FIS) : error;
+        error = fisPoints ? verifyName(error, row, fisPoints, FIS) : error;
       }
       let country = _.get(fisPoints, FIS.NATION, (usssPoints ? 'USA' : ''));
       return ({
@@ -159,23 +159,23 @@ export default class Event extends Component {
         id,
       });
     });
-    this.setState({ rows: scrubbedRows });
-    firestore.collection(auth.currentUser.uid).doc(this.eventId).update({ scrubbedData: scrubbedRows })
+    setRows(scrubbedRows);
+    firestore.collection(auth.currentUser.uid).doc(eventId).update({ scrubbedData: scrubbedRows })
       .catch((error) => {
-        console.error(`Error updating document ${this.eventId}:`, error);
+        console.error(`Error updating document ${eventId}:`, error);
       });
   }
 
-  handleShowErrors = () => {
-    if (!this.state.showErrors) {
-      this.setState({ rows: _.filter(this.state.rows, (row) => row.error !== '') });
+  const handleShowErrors = () => {
+    if (!showErrors) {
+      setRows(_.filter(rows, (row) => row.error !== ''));
     } else {
-      this.getRegData();
+      getRegData();
     }
-    this.setState({ showErrors: !this.state.showErrors });
+    setShowErrors(!showErrors);
   }
 
-  verifyName = (error, regData, pointsData, type) => {
+  const verifyName = (error, regData, pointsData, type) => {
     error += regData.firstName.toLowerCase() !== pointsData[type.FIRST_NAME].toLowerCase() ? type.NAME + ' First Names do not match. ' : '';
     error += regData.lastName.toLowerCase() !== pointsData[type.LAST_NAME].toLowerCase() ? type.NAME + ' Last Names do not match. ' : '';
     error += moment(regData.birthDate.toDate()).format('YYYY') !== pointsData[type.YOB].toString() ? type.NAME + ' Birth Years do not match. ' : '';
@@ -184,86 +184,84 @@ export default class Event extends Component {
     return error;
   }
 
-  render() {
-    return (
-      <div>
-        <SimpleSelect
-          items={this.state.menuItems}
-          label='Last Name'
-          onChange={(key) => this.handleChange('lastName', key)}
-          toolTip="Select the column that contains the athlete's last name"
-          value={_.get(_.find(this.state.columnMap, (o) => o.columnName === 'lastName'), 'columnId', '')}
-        />
-        <SimpleSelect
-          items={this.state.menuItems}
-          label='First Name'
-          onChange={(key) => this.handleChange('firstName', key)}
-          toolTip="Select the column that contains the athlete's first name"
-          value={_.get(_.find(this.state.columnMap, (o) => o.columnName === 'firstName'), 'columnId', '')}
-        />
-        <SimpleSelect
-          items={this.state.menuItems}
-          label='Gender'
-          onChange={(key) => this.handleChange('gender', key)}
-          toolTip="Select the column that contains the athlete's gender"
-          value={_.get(_.find(this.state.columnMap, (o) => o.columnName === 'gender'), 'columnId', '')}
-        />
-        <SimpleSelect
-          items={this.state.menuItems}
-          label='Birth Date'
-          onChange={(key) => this.handleChange('birthDate', key)}
-          toolTip="Select the column that contains the athlete's birth date"
-          value={_.get(_.find(this.state.columnMap, (o) => o.columnName === 'birthDate'), 'columnId', '')}
-        />
-        <SimpleSelect
-          items={this.state.menuItems}
-          label='Club'
-          onChange={(key) => this.handleChange('club', key)}
-          toolTip="Select the column that contains the athlete's club"
-          value={_.get(_.find(this.state.columnMap, (o) => o.columnName === 'club'), 'columnId', '')}
-        />
-        <SimpleSelect
-          items={this.state.menuItems}
-          label='USSS License'
-          onChange={(key) => this.handleChange('usssLicense', key)}
-          toolTip="Select the column that contains the athlete's USSS License Number"
-          value={_.get(_.find(this.state.columnMap, (o) => o.columnName === 'usssLicense'), 'columnId', '')}
-        />
-        <SimpleSelect
-          items={this.state.menuItems}
-          label='FIS License'
-          onChange={(key) => this.handleChange('fisLicense', key)}
-          toolTip="Select the column that contains the athlete's FIS License Number"
-          value={_.get(_.find(this.state.columnMap, (o) => o.columnName === 'fisLicense'), 'columnId', '')}
-        />
-        <FormControlLabel
-          control={
-            <Switch
-              checked={this.state.checkFISNumbers}
-              onChange={this.handleCheckFISNumbers}
-              value={this.state.checkFISNumbers}
-              color="primary"
-            />
-          }
-          label="Check FIS Numbers"
-        />
-        <FormControlLabel
-          control={
-            <Switch
-              checked={this.state.showErrors}
-              onChange={this.handleShowErrors}
-              value={this.state.showErrors}
-              color="primary"
-            />
-          }
-          label="Show Errors"
-        />
-        <Button onClick={this.handleScrubClick} color="primary" disabled={this.state.disableScrubButton} >
-          Scrub
-        </Button>
-        <EventTable columns={this.state.columns} rows={this.state.rows} />
-      </div>
-    );
-  };
+  return (
+    <div>
+      <SimpleSelect
+        items={menuItems}
+        label='Last Name'
+        onChange={(key) => handleChange('lastName', key)}
+        toolTip="Select the column that contains the athlete's last name"
+        value={_.get(_.find(columnMap, (o) => o.columnName === 'lastName'), 'columnId', '')}
+      />
+      <SimpleSelect
+        items={menuItems}
+        label='First Name'
+        onChange={(key) => handleChange('firstName', key)}
+        toolTip="Select the column that contains the athlete's first name"
+        value={_.get(_.find(columnMap, (o) => o.columnName === 'firstName'), 'columnId', '')}
+      />
+      <SimpleSelect
+        items={menuItems}
+        label='Gender'
+        onChange={(key) => handleChange('gender', key)}
+        toolTip="Select the column that contains the athlete's gender"
+        value={_.get(_.find(columnMap, (o) => o.columnName === 'gender'), 'columnId', '')}
+      />
+      <SimpleSelect
+        items={menuItems}
+        label='Birth Date'
+        onChange={(key) => handleChange('birthDate', key)}
+        toolTip="Select the column that contains the athlete's birth date"
+        value={_.get(_.find(columnMap, (o) => o.columnName === 'birthDate'), 'columnId', '')}
+      />
+      <SimpleSelect
+        items={menuItems}
+        label='Club'
+        onChange={(key) => handleChange('club', key)}
+        toolTip="Select the column that contains the athlete's club"
+        value={_.get(_.find(columnMap, (o) => o.columnName === 'club'), 'columnId', '')}
+      />
+      <SimpleSelect
+        items={menuItems}
+        label='USSS License'
+        onChange={(key) => handleChange('usssLicense', key)}
+        toolTip="Select the column that contains the athlete's USSS License Number"
+        value={_.get(_.find(columnMap, (o) => o.columnName === 'usssLicense'), 'columnId', '')}
+      />
+      <SimpleSelect
+        items={menuItems}
+        label='FIS License'
+        onChange={(key) => handleChange('fisLicense', key)}
+        toolTip="Select the column that contains the athlete's FIS License Number"
+        value={_.get(_.find(columnMap, (o) => o.columnName === 'fisLicense'), 'columnId', '')}
+      />
+      <FormControlLabel
+        control={
+          <Switch
+            checked={checkFISNumbers}
+            onChange={() => setCheckFISNumbers(!checkFISNumbers)}
+            value={checkFISNumbers}
+            color="primary"
+          />
+        }
+        label="Check FIS Numbers"
+      />
+      <FormControlLabel
+        control={
+          <Switch
+            checked={showErrors}
+            onChange={handleShowErrors}
+            value={showErrors}
+            color="primary"
+          />
+        }
+        label="Show Errors"
+      />
+      <Button onClick={handleScrubClick} color="primary" disabled={disableScrubButton} >
+        Scrub
+      </Button>
+      <EventTable columns={columns} rows={rows} />
+    </div>
+  );
 
 };

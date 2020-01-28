@@ -36,7 +36,7 @@ const useStyles = makeStyles({
     width: '100%',
   },
   container: {
-    maxHeight: 440,
+    maxHeight: '100%',
   },
   table: {
     minWidth: 650,
@@ -52,7 +52,7 @@ export default function EventTable(props) {
   const [page, setPage] = useState(0);
   const [participantRow, setParticipantRow] = useState({});
   const [rows, setRows] = useState([]);
-  const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [rowsPerPage, setRowsPerPage] = useState(25);
 
   useEffect(() => {
     setRows(props.rows);
@@ -129,7 +129,7 @@ export default function EventTable(props) {
         </Table>
       </TableContainer>
       <TablePagination
-        rowsPerPageOptions={[10, 25, 100]}
+        rowsPerPageOptions={[10, 25, 50, 100]}
         component="div"
         count={rows.length}
         rowsPerPage={rowsPerPage}
