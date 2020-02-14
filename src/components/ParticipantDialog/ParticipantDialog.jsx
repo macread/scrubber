@@ -12,7 +12,11 @@ import {
   MuiPickersUtilsProvider,
   KeyboardDatePicker,
 } from '@material-ui/pickers';
+import IconButton from '@material-ui/core/IconButton';
+import Link from '@material-ui/core/Link';
+import OpenInNewTwoToneIcon from '@material-ui/icons/OpenInNewTwoTone';
 import TextField from '@material-ui/core/TextField';
+import Tooltip from '@material-ui/core/Tooltip';
 import Typography from '@material-ui/core/Typography';
 import { makeStyles } from '@material-ui/core/styles';
 
@@ -234,6 +238,17 @@ export default function ParticipantDialog(props) {
                 onChange={(e) => handleChange(e, 'usssLicense')}
                 value={usssLicense}
               />
+              <Tooltip title={`Click to open at FIS Website using the USSS Member Number ${usssLicense}`}>
+                <Link
+                  href={`https://usskiandsnowboard.org/public-tools/members/${usssLicense}`}
+                  rel="noopener"
+                  target='_blank'
+                >
+                  <IconButton aria-label="open in new tab">
+                    <OpenInNewTwoToneIcon color='primary' fontSize='small' />
+                  </IconButton>
+                </Link>
+              </Tooltip>
             </Grid>
             <Grid item xs>
               <TextField
@@ -279,7 +294,19 @@ export default function ParticipantDialog(props) {
 
           <Divider />
           <Typography variant="body1" gutterBottom>
-            USSS
+            <Tooltip title={`Click to find all athletes with the last name of ${lastName} on the USSS Website`}>
+              <Link
+                href={`https://usskiandsnowboard.org/public-tools/members?clear=false&firstName=&lastName=${lastName}&season=2020&userId=`}
+                // onClick={preventDefault}
+                rel="noopener"
+                target='_blank'
+              >
+                USSS
+                <IconButton aria-label="open in new tab">
+                  <OpenInNewTwoToneIcon color='primary' fontSize='small' />
+                </IconButton>
+              </Link>
+            </Tooltip>
           </Typography>
 
           <ParticipantDialogTable
@@ -300,6 +327,17 @@ export default function ParticipantDialog(props) {
                 onChange={(e) => handleChange(e, 'fisLicense')}
                 value={fisLicense}
               />
+              <Tooltip title={`Click to open at FIS Website using the FIS Member Number ${fisLicense}`}>
+                <Link
+                  href={`https://www.fis-ski.com/DB/general/biographies.html?lastname=&firstname=&sectorcode=&gendercode=&birthyear=&skiclub=&skis=&nationcode=&fiscode=${fisLicense}&status=&search=true`}
+                  rel="noopener"
+                  target='_blank'
+                >
+                  <IconButton aria-label="open in new tab">
+                    <OpenInNewTwoToneIcon color='primary' fontSize='small' />
+                  </IconButton>
+                </Link>
+              </Tooltip>
             </Grid>
             <Grid item xs>
               <TextField
@@ -335,7 +373,19 @@ export default function ParticipantDialog(props) {
 
           <Divider />
           <Typography variant="body1" gutterBottom>
-            FIS
+            <Tooltip title={`Click to find all athletes with the last name of ${lastName} on the FIS Website`}>
+              <Link
+                href={`https://www.fis-ski.com/DB/general/biographies.html?lastname=${lastName}&firstname=&sectorcode=&gendercode=&birthyear=&skiclub=&skis=&nationcode=&fiscode=&status=&search=true`}
+                // onClick={preventDefault}
+                rel="noopener"
+                target='_blank'
+              >
+                FIS
+                <IconButton aria-label="open in new tab">
+                  <OpenInNewTwoToneIcon color='primary' fontSize='small' />
+                </IconButton>
+              </Link>
+            </Tooltip>
           </Typography>
 
           <ParticipantDialogTable
@@ -348,7 +398,7 @@ export default function ParticipantDialog(props) {
 
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleClose} color="primary">
+          <Button onClick={handleClose} color="secondary">
             Cancel
           </Button>
           <Button onClick={updatePoints} color="primary">

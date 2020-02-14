@@ -10,6 +10,7 @@ import TableCell from '@material-ui/core/TableCell';
 import TableContainer from '@material-ui/core/TableContainer';
 import TableHead from '@material-ui/core/TableHead';
 import TableRow from '@material-ui/core/TableRow';
+import Tooltip from '@material-ui/core/Tooltip';
 import Paper from '@material-ui/core/Paper';
 
 const fisColumns = {
@@ -78,9 +79,11 @@ export default function ParticipantDialogTable(props) {
               <TableCell align="center">{row[columns.sprintPoints]}</TableCell>
               <TableCell align="center">{row[columns.distancePoints]}</TableCell>
               <TableCell align="center">
-                <Button color="secondary" onClick={() => onClick(row)}>
-                  Use
-                </Button>
+                <Tooltip title="Click to use this athlete's name and points.">
+                  <Button color="primary" onClick={() => onClick(row)}>
+                    Use
+                  </Button>
+                </Tooltip>
               </TableCell>
 
             </TableRow>
