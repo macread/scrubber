@@ -54,7 +54,7 @@ const headCells = [
   { id: 'date', numeric: false, disablePadding: false, label: 'Date' },
 ];
 
-function EnhancedTableHead(props) {
+function EventsTableHead(props) {
   const { classes, onSelectAllClick, order, orderBy, numSelected, rowCount, onRequestSort } = props;
   const createSortHandler = property => event => {
     onRequestSort(event, property);
@@ -97,7 +97,7 @@ function EnhancedTableHead(props) {
   );
 }
 
-EnhancedTableHead.propTypes = {
+EventsTableHead.propTypes = {
   classes: PropTypes.object.isRequired,
   numSelected: PropTypes.number.isRequired,
   onRequestSort: PropTypes.func.isRequired,
@@ -127,7 +127,7 @@ const useToolbarStyles = makeStyles(theme => ({
   },
 }));
 
-const EnhancedTableToolbar = props => {
+const EventsTableToolbar = props => {
   const classes = useToolbarStyles();
   const { numSelected } = props;
 
@@ -175,7 +175,7 @@ const EnhancedTableToolbar = props => {
   );
 };
 
-EnhancedTableToolbar.propTypes = {
+EventsTableToolbar.propTypes = {
   numSelected: PropTypes.number.isRequired,
 };
 
@@ -207,7 +207,7 @@ const useStyles = makeStyles(theme => ({
   },
 }));
 
-export default function EnhancedTable(props) {
+export default function Events(props) {
   const classes = useStyles();
   const [order, setOrder] = React.useState('asc');
   const [orderBy, setOrderBy] = React.useState('eventName');
@@ -271,7 +271,7 @@ export default function EnhancedTable(props) {
   return (
     <div className={classes.root}>
       <Paper className={classes.paper}>
-        <EnhancedTableToolbar numSelected={selected.length} />
+        <EventsTableToolbar numSelected={selected.length} />
         <div className={classes.tableWrapper}>
           <Table
             className={classes.table}
@@ -279,7 +279,7 @@ export default function EnhancedTable(props) {
             size={dense ? 'small' : 'medium'}
             aria-label="event table"
           >
-            <EnhancedTableHead
+            <EventsTableHead
               classes={classes}
               numSelected={selected.length}
               order={order}

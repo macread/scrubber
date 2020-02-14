@@ -25,4 +25,4 @@ function PointProvider(props) {
   return <PointContext.Provider value={value} {...props} />
 }
 
-export { PointProvider, useFisPoints, useUsssPoints };
+export default { PointProvider, useFisPoints, useUsssPoints };

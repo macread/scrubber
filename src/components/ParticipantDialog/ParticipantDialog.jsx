@@ -1,9 +1,5 @@
 import React, { useEffect, useState } from 'react';
 
-import { firestore } from '../../firebase';
-
-import _ from 'lodash';
-
 import Button from '@material-ui/core/Button';
 import DateFnsUtils from '@date-io/date-fns';
 import Dialog from '@material-ui/core/Dialog';
@@ -20,6 +16,8 @@ import TextField from '@material-ui/core/TextField';
 import Typography from '@material-ui/core/Typography';
 import { makeStyles } from '@material-ui/core/styles';
 
+import ParticipantDialogTable from './ParticipantDialogTable/ParticipantDialogTable';
+
 const useStyles = makeStyles({
   root: {
     width: '100%',
@@ -28,7 +26,7 @@ const useStyles = makeStyles({
 });
 
 
-export default function UploadDialog(props) {
+export default function ParticipantDialog(props) {
   const [birthDate, setBirthDate] = useState();
   const [club, setClub] = useState();
   const [country, setCountry] = useState();
@@ -38,6 +36,7 @@ export default function UploadDialog(props) {
   const [fisDistancePoints, setFisDistancePoints] = useState();
   const [fisLicense, setFisLicense] = useState();
   const [fisSprintPoints, setFisSprintPoints] = useState();
+  const [gender, setGender] = useState();
   const [id, setId] = useState();
   const [lastName, setLastName] = useState();
   const [usssDistancePoints, setUsssDistancePoints] = useState();
@@ -45,6 +44,8 @@ export default function UploadDialog(props) {
   const [usssSprintPoints, setUsssSprintPoints] = useState();
 
   const [open, setOpen] = useState(false);
+
+  const { fisPointsList, toggleParticipantDialog, usssPointsList, updateRow } = props;
 
   useEffect(() => {
     const {
@@ -57,6 +58,7 @@ export default function UploadDialog(props) {
       fisDistancePoints,
       fisLicense,
       fisSprintPoints,
+      gender,
       id,
       lastName,
       usssDistancePoints,
@@ -72,6 +74,7 @@ export default function UploadDialog(props) {
     setFisDistancePoints(fisDistancePoints);
     setFisLicense(fisLicense);
     setFisSprintPoints(fisSprintPoints);
+    setGender(gender);
     setId(id);
     setLastName(lastName);
     setUsssDistancePoints(usssDistancePoints);
@@ -80,8 +83,6 @@ export default function UploadDialog(props) {
 
     setOpen(props.open);
   }, [props.open, props.row]);
-
-  const { toggleParticipantDialog } = props;
 
   const classes = useStyles();
 
@@ -95,19 +96,86 @@ export default function UploadDialog(props) {
         // setBirthDate()
         break;
       case 'firstName':
-        setFirstName(e.target.value);
+        setFirstName(toInitialCaps(e.target.value));
         break;
       case 'lastName':
-        setLastName(e.target.value);
+        setLastName(e.target.value.toUpperCase());
         break;
-
+      case 'usssLicense':
+        setUsssLicense(e.target.value);
+        break;
+      case 'usssSprintPoints':
+        setUsssSprintPoints(e.target.value);
+        break;
+      case 'usssDistancePoints':
+        setUsssDistancePoints(e.target.value);
+        break;
+      case 'club':
+        setClub(e.target.value);
+        break;
+      case 'division':
+        setDivision(e.target.value);
+        break;
+      case 'fisLicense':
+        setFisLicense(e.target.value);
+        break;
+      case 'fisSprintPoints':
+        setFisSprintPoints(e.target.value);
+        break;
+      case 'fisDistancePoints':
+        setFisDistancePoints(e.target.value);
+        break;
+      case 'country':
+        setCountry(e.target.value);
+        break;
       default:
         console.log(`Bad field value ${field}.`);
     }
   }
 
+  const toInitialCaps = (stg) => {
+    stg = stg.toLowerCase();
+    return stg.charAt(0).toUpperCase() + stg.slice(1);
+  }
+
   const updatePoints = () => {
+    const row = {
+      birthDate,
+      club,
+      country,
+      division,
+      error,
+      firstName,
+      fisDistancePoints,
+      fisLicense,
+      fisSprintPoints,
+      gender,
+      id,
+      lastName,
+      usssDistancePoints,
+      usssLicense,
+      usssSprintPoints
+    }
+    updateRow(row);
     handleClose();
+  }
+
+  const updateUsss = (row) => {
+    setFirstName(toInitialCaps(row.B));
+    setLastName(row.A.toUpperCase());
+    setUsssLicense(row.D);
+    setUsssSprintPoints(row.G);
+    setUsssDistancePoints(row.H);
+    setDivision(row.C);
+  }
+
+  const updateFis = (row) => {
+    setFirstName(toInitialCaps(row.D));
+    setLastName(row.C.toUpperCase());
+    setFisLicense(row.B);
+    setFisSprintPoints(row.H);
+    setFisDistancePoints(row.G);
+    setCountry(row.E);
   }
 
   return (
@@ -214,6 +282,14 @@ export default function UploadDialog(props) {
             USSS
           </Typography>
 
+          <ParticipantDialogTable
+            lastName={lastName}
+            license={usssLicense}
+            listType='usss'
+            onClick={updateUsss}
+            pointsList={usssPointsList}
+          />
+
           <Grid container spacing={4}>
             <Grid item xs>
               <TextField
@@ -261,6 +337,14 @@ export default function UploadDialog(props) {
           <Typography variant="body1" gutterBottom>
             FIS
           </Typography>
+
+          <ParticipantDialogTable
+            lastName={lastName}
+            license={fisLicense}
+            listType='fis'
+            onClick={updateFis}
+            pointsList={fisPointsList}
+          />
 
         </DialogContent>
         <DialogActions>

@@ -54,6 +54,8 @@ export default function EventTable(props) {
   const [rows, setRows] = useState([]);
   const [rowsPerPage, setRowsPerPage] = useState(25);
 
+  const { fisPointsList, usssPointsList, updateRow } = props;
+
   useEffect(() => {
     setRows(props.rows);
   }, [props.columns, props.rows]);
@@ -79,7 +81,14 @@ export default function EventTable(props) {
 
   return (
     <Paper className={classes.root}>
-      <ParticipantDialog open={openParticipantDialog} row={participantRow} toggleParticipantDialog={toggleParticipantDialog} />
+      <ParticipantDialog
+        fisPointsList={fisPointsList}
+        open={openParticipantDialog}
+        row={participantRow}
+        toggleParticipantDialog={toggleParticipantDialog}
+        updateRow={updateRow}
+        usssPointsList={usssPointsList}
+      />
       <TableContainer className={classes.container}>
         <Table
           aria-label="athlete table"

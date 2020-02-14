@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState } from 'react';
 
 import { auth, firestore } from '../../firebase';
 import _ from 'lodash';
@@ -31,8 +31,8 @@ const FIS = {
   FIRST_NAME: 'D',
   NATION: 'E',
   YOB: 'F',
-  SPRINT: 'G',
-  DISTANCE: 'H',
+  DISTANCE: 'G',
+  SPRINT: 'H',
   USSA_ID: 'I',
   DIVISION: 'J',
   NAME: 'FIS',
@@ -53,46 +53,18 @@ export default function Event(props) {
 
   const { eventId } = props.match.params;
 
-  const getRegData = useCallback(() => {
-    firestore.collection(auth.currentUser.uid).doc(eventId).get()
-      .then((doc) => {
-        setRegData(doc.data().regData);
-        setColumnMap(doc.data().columnMap || []);
-        setRows(doc.data().scrubbedData || []);
-        const keys = Object.keys(regData[0]);
-        const columns = keys.map((key) => {
-          let col = {};
-          col.id = key;
-          col.label = regData[0][key];
-          return col;
-        });
-        const menuItems = columns.map((column) => {
-          let item = {};
-          item.value = column.id;
-          item.option = column.label;
-          return item;
-        })
-        setColumns(columns);
-        setMenuItems(menuItems);
-      })
-      .catch((err) => console.log('Error getting event: ', err));
-  }, [eventId, regData]);
-
   useEffect(() => {
-    // setEventId(props.match.params.eventId);
-    // console.log(auth.currentUser.uid, eventId, .eventId);
-
     getRegData();
-
+    let womensPointsList = [];
     firestore.collection('points').doc('usssWomen').get()
       .then((doc) => {
-        setUsssPointsList(doc.data().pointsList);
+        womensPointsList = doc.data().pointsList;
       })
       .catch((err) => console.log("Error getting USSS Women's Points List: ", err));
 
     firestore.collection('points').doc('usssMen').get()
       .then((doc) => {
-        const pointsList = _.concat(usssPointsList, _.slice(doc.data().pointsList, 1));
+        const pointsList = _.concat(womensPointsList, _.slice(doc.data().pointsList, 1));
         setUsssPointsList(pointsList);
       })
       .catch((err) => console.log("Error getting USSS Men's Points List: ", err));
@@ -109,21 +81,46 @@ export default function Event(props) {
         setFisPointsList(pointsList);
       })
       .catch((err) => console.log("Error getting FIS Men's Points List: ", err));
-  }, [getRegData, props.eventId, usssPointsList, fisPointsList, props.match.params.eventId]);
+  }, []);
+
+  const getRegData = () => {
+    firestore.collection(auth.currentUser.uid).doc(eventId).get()
+      .then((doc) => {
+        setRegData(doc.data().regData);
+        setColumnMap(doc.data().columnMap || []);
+        setRows(doc.data().scrubbedData || []);
+        const keys = Object.keys(doc.data().regData[0]);
+        const columns = keys.map((key) => {
+          let col = {};
+          col.id = key;
+          col.label = doc.data().regData[0][key];
+          return col;
+        });
+        const menuItems = columns.map((column) => {
+          let item = {};
+          item.value = column.id;
+          item.option = column.label;
+          return item;
+        })
+        setColumns(columns);
+        setMenuItems(menuItems);
+      })
+      .catch((err) => console.log('Error getting event: ', err));
+  };
 
   const handleChange = (select, key) => {
-    //create the column map, but make sure there are no duplicate column header enteries
+    //create the column map, but make sure there are no duplicate column header entries
     let colMap = _.filter(columnMap, (o) => o.columnName !== select);
     colMap.push({ columnName: select, columnId: key })
     const rows = _.map(regData, (row) => {
       let rowValues = {};
       for (let i = 0; i < colMap.length; i++) {
-        rowValues = { ...rowValues, ...{ [columnMap[i].columnName]: row[columnMap[i].columnId] } } //merge the columns in to the scrubbed object array
+        rowValues = { ...rowValues, ...{ [colMap[i].columnName]: row[colMap[i].columnId] } } //merge the columns in to the scrubbed object array
       }
       return (_.omitBy(rowValues, _.isNil)); //remove the undefined objects
     })
     setRows(rows);
-    setColumnMap(columnMap);
+    setColumnMap(colMap);
     firestore.collection(auth.currentUser.uid).doc(eventId).update({ columnMap, scrubbedData: rows })
       .catch((error) => {
         console.error(`Error updating document ${eventId}:`, error);
@@ -132,32 +129,7 @@ export default function Event(props) {
 
   const handleScrubClick = () => {
     const scrubbedRows = _.map(rows, (row, id) => {
-      let fisPoints = null;
-      let usssPoints = _.find(usssPointsList, [USSS.USSA_ID, row.usssLicense]);
-      let error = usssPoints ? '' : 'Unknown USSS License Number';
-      error = usssPoints ? verifyName(error, row, usssPoints, USSS) : error;
-      if (checkFISNumbers) {
-        fisPoints = _.find(fisPointsList, [FIS.FIS_CODE, row.fisLicense]);
-        error = fisPoints ? error : 'Unknown FIS License Number';
-        error = fisPoints ? verifyName(error, row, fisPoints, FIS) : error;
-      }
-      let country = _.get(fisPoints, FIS.NATION, (usssPoints ? 'USA' : ''));
-      return ({
-        lastName: _.get(row, 'lastName', ''),
-        firstName: _.get(row, 'firstName', ''),
-        club: _.get(row, 'club', ''),
-        birthDate: _.get(row, 'birthDate', ''),
-        usssLicense: _.get(row, 'usssLicense', ''),
-        usssSprintPoints: _.get(usssPoints, USSS.SPRINT, ''),
-        usssDistancePoints: _.get(usssPoints, USSS.DISTANCE, ''),
-        division: _.get(usssPoints, USSS.DIVISION, ''),
-        fisLicense: _.get(row, 'fisLicense', ''),
-        fisSprintPoints: _.get(fisPoints, FIS.SPRINT, ''),
-        fisDistancePoints: _.get(fisPoints, FIS.DISTANCE, ''),
-        country,
-        error,
-        id,
-      });
+      return scrubRow(row, id);
     });
     setRows(scrubbedRows);
     firestore.collection(auth.currentUser.uid).doc(eventId).update({ scrubbedData: scrubbedRows })
@@ -173,6 +145,47 @@ export default function Event(props) {
       getRegData();
     }
     setShowErrors(!showErrors);
+  }
+
+  const scrubRow = (row, id) => {
+    let fisPoints = null;
+    let usssPoints = _.find(usssPointsList, [USSS.USSA_ID, row.usssLicense]);
+    let error = usssPoints ? '' : 'Unknown USSS License Number';
+    error = usssPoints ? verifyName(error, row, usssPoints, USSS) : error;
+    if (checkFISNumbers) {
+      fisPoints = _.find(fisPointsList, [FIS.FIS_CODE, row.fisLicense]);
+      error = fisPoints ? error : 'Unknown FIS License Number';
+      error = fisPoints ? verifyName(error, row, fisPoints, FIS) : error;
+    }
+    let country = _.get(fisPoints, FIS.NATION, (usssPoints ? 'USA' : ''));
+    return ({
+      lastName: _.get(row, 'lastName', ''),
+      firstName: _.get(row, 'firstName', ''),
+      gender: _.get(row, 'gender'),
+      club: _.get(row, 'club', ''),
+      birthDate: _.get(row, 'birthDate', ''),
+      usssLicense: _.get(row, 'usssLicense', ''),
+      usssSprintPoints: _.get(usssPoints, USSS.SPRINT, ''),
+      usssDistancePoints: _.get(usssPoints, USSS.DISTANCE, ''),
+      division: _.get(usssPoints, USSS.DIVISION, ''),
+      fisLicense: _.get(row, 'fisLicense', ''),
+      fisSprintPoints: _.get(fisPoints, FIS.SPRINT, ''),
+      fisDistancePoints: _.get(fisPoints, FIS.DISTANCE, ''),
+      country,
+      error,
+      id,
+    });
+  }
+
+  const updateRow = (row) => {
+    row = scrubRow(row, row.id);
+    let rowsCopy = rows.slice();
+    rowsCopy[_.findIndex(rowsCopy, 'id', row.id)] = row;
+    setRows(rowsCopy);
+    firestore.collection(auth.currentUser.uid).doc(eventId).update({ scrubbedData: rowsCopy })
+      .catch((error) => {
+        console.error(`Error updating document ${eventId}:`, error);
+      });
   }
 
   const verifyName = (error, regData, pointsData, type) => {
@@ -260,7 +273,13 @@ export default function Event(props) {
       <Button onClick={handleScrubClick} color="primary" disabled={disableScrubButton} >
         Scrub
       </Button>
-      <EventTable columns={columns} rows={rows} />
+      <EventTable
+        columns={columns}
+        fisPointsList={fisPointsList}
+        rows={rows}
+        updateRow={updateRow}
+        usssPointsList={usssPointsList}
+      />
     </div>
   );
 
