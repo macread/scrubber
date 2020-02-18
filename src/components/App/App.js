@@ -176,170 +176,170 @@ class App extends Component {
       snackbar
     } = this.state;
 
-    return ( <
-      MuiThemeProvider theme = {
-        theme
-      } >
-      <
-      CssBaseline / >
+    return (
+      <MuiThemeProvider theme={theme}>
+        <CssBaseline />
 
-      {
-        !ready &&
-        <
-        LaunchScreen / >
-      }
-
-      {
-        ready &&
+        {
+          !ready &&
           <
-          >
-          <
-          Bar
-        signedIn = {
-          signedIn
-        }
-        performingAction = {
-          performingAction
+            LaunchScreen />
         }
 
-        user = {
-          user
-        }
-        userData = {
-          userData
-        }
-
-        onSignUpClick = {
-          () => this.openDialog('signUpDialog')
-        }
-        onSignInClick = {
-          () => this.openDialog('signInDialog')
-        }
-
-        onSettingsClick = {
-          () => this.openDialog('settingsDialog')
-        }
-        onSignOutClick = {
-          () => this.openDialog('signOutDialog')
-        }
-        />
-
-        <
-        Router signedIn = {
-          signedIn
-        }
-        />
-
-        <
-        DialogHost
-        signedIn = {
-          signedIn
-        }
-        dialogs = {
-          {
-            signUpDialog: {
-              dialogProps: {
-                open: signUpDialog.open,
-
-                onClose: (callback) => {
-                  this.closeDialog('signUpDialog');
-
-                  if (callback && typeof callback === 'function') {
-                    callback();
-                  }
-                }
-              },
-
-              props: {
-                performingAction: performingAction,
-
-                openSnackbar: this.openSnackbar
+        {
+          ready &&
+          <>
+            <Bar
+              signedIn={
+                signedIn
               }
-            },
-
-            signInDialog: {
-              dialogProps: {
-                open: signInDialog.open,
-
-                onClose: (callback) => {
-                  this.closeDialog('signInDialog');
-
-                  if (callback && typeof callback === 'function') {
-                    callback();
-                  }
-                }
-              },
-
-              props: {
-                performingAction: performingAction,
-                signIn: this.signIn,
-                openSnackbar: this.openSnackbar
+              performingAction={
+                performingAction
               }
-            },
 
-            settingsDialog: {
-              dialogProps: {
-                open: settingsDialog.open,
-                disableEscapeKeyDown: true,
-
-                onClose: () => this.closeDialog('settingsDialog')
-              },
-
-              props: {
-                user: user,
-                userData: userData,
-                theme: theme,
-
-                openSnackbar: this.openSnackbar
+              user={
+                user
               }
-            },
-
-            signOutDialog: {
-              dialogProps: {
-                open: signOutDialog.open,
-
-                onClose: () => this.closeDialog('signOutDialog')
-              },
-
-              props: {
-                title: 'Sign out?',
-                contentText: 'While signed out you are unable to manage your profile and conduct other activities that require you to be signed in.',
-                dismissiveAction: < Button color = "primary"
-                onClick = {
-                  () => this.closeDialog('signOutDialog')
-                } > Cancel < /Button>,
-                confirmingAction: < Button color = "primary"
-                disabled = {
-                  performingAction
-                }
-                variant = "contained"
-                onClick = {
-                  this.signOut
-                } > Sign Out < /Button>
+              userData={
+                userData
               }
+
+              onSignUpClick={
+                () => this.openDialog('signUpDialog')
+              }
+              onSignInClick={
+                () => this.openDialog('signInDialog')
+              }
+
+              onSettingsClick={
+                () => this.openDialog('settingsDialog')
+              }
+              onSignOutClick={
+                () => this.openDialog('signOutDialog')
+              }
+            />
+
+            <Router signedIn={
+              signedIn
             }
-          }
-        }
-        />
+            />
 
-        <
-        Snackbar
-        autoHideDuration = {
-          snackbar.autoHideDuration
+            <DialogHost
+              signedIn={
+                signedIn
+              }
+              dialogs={
+                {
+                  signUpDialog: {
+                    dialogProps: {
+                      open: signUpDialog.open,
+
+                      onClose: (callback) => {
+                        this.closeDialog('signUpDialog');
+
+                        if (callback && typeof callback === 'function') {
+                          callback();
+                        }
+                      }
+                    },
+
+                    props: {
+                      performingAction: performingAction,
+
+                      openSnackbar: this.openSnackbar
+                    }
+                  },
+
+                  signInDialog: {
+                    dialogProps: {
+                      open: signInDialog.open,
+
+                      onClose: (callback) => {
+                        this.closeDialog('signInDialog');
+
+                        if (callback && typeof callback === 'function') {
+                          callback();
+                        }
+                      }
+                    },
+
+                    props: {
+                      performingAction: performingAction,
+                      signIn: this.signIn,
+                      openSnackbar: this.openSnackbar
+                    }
+                  },
+
+                  settingsDialog: {
+                    dialogProps: {
+                      open: settingsDialog.open,
+                      disableEscapeKeyDown: true,
+
+                      onClose: () => this.closeDialog('settingsDialog')
+                    },
+
+                    props: {
+                      user: user,
+                      userData: userData,
+                      theme: theme,
+
+                      openSnackbar: this.openSnackbar
+                    }
+                  },
+
+                  signOutDialog: {
+                    dialogProps: {
+                      open: signOutDialog.open,
+
+                      onClose: () => this.closeDialog('signOutDialog')
+                    },
+
+                    props: {
+                      title: 'Sign out?',
+                      contentText: 'While signed out you are unable to manage your profile and conduct other activities that require you to be signed in.',
+                      dismissiveAction:
+                        <Button color="primary"
+                          onClick={
+                            () => this.closeDialog('signOutDialog')
+                          }
+                        >
+                          Cancel
+                          </Button>,
+                      confirmingAction:
+                        <Button color="primary"
+                          disabled={
+                            performingAction
+                          }
+                          variant="contained"
+                          onClick={
+                            this.signOut
+                          }
+                        >
+                          Sign Out
+                          </Button>
+                    }
+                  }
+                }
+              }
+            />
+
+            <Snackbar
+              autoHideDuration={
+                snackbar.autoHideDuration
+              }
+              message={
+                snackbar.message
+              }
+              open={
+                snackbar.open
+              }
+              onClose={
+                this.closeSnackbar
+              }
+            />
+          </ >
         }
-        message = {
-          snackbar.message
-        }
-        open = {
-          snackbar.open
-        }
-        onClose = {
-          this.closeSnackbar
-        }
-        /> < /
-        >
-      } <
-      /MuiThemeProvider>
+      </MuiThemeProvider>
     );
   }
 

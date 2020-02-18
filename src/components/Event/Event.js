@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 
 import { auth, firestore } from '../../firebase';
 import _ from 'lodash';
@@ -53,6 +53,31 @@ export default function Event(props) {
 
   const { eventId } = props.match.params;
 
+  const getRegData = useCallback(() => {
+    firestore.collection(auth.currentUser.uid).doc(eventId).get()
+      .then((doc) => {
+        setRegData(doc.data().regData);
+        setColumnMap(doc.data().columnMap || []);
+        setRows(doc.data().scrubbedData || []);
+        const keys = Object.keys(doc.data().regData[0]);
+        const columns = keys.map((key) => {
+          let col = {};
+          col.id = key;
+          col.label = doc.data().regData[0][key];
+          return col;
+        });
+        const menuItems = columns.map((column) => {
+          let item = {};
+          item.value = column.id;
+          item.option = column.label;
+          return item;
+        })
+        setColumns(columns);
+        setMenuItems(menuItems);
+      })
+      .catch((err) => console.log('Error getting event: ', err));
+  }, [eventId]);
+
   useEffect(() => {
     getRegData();
     let womensPointsList = [];
@@ -82,31 +107,6 @@ export default function Event(props) {
       })
       .catch((err) => console.log("Error getting FIS Men's Points List: ", err));
   }, []);
-
-  const getRegData = () => {
-    firestore.collection(auth.currentUser.uid).doc(eventId).get()
-      .then((doc) => {
-        setRegData(doc.data().regData);
-        setColumnMap(doc.data().columnMap || []);
-        setRows(doc.data().scrubbedData || []);
-        const keys = Object.keys(doc.data().regData[0]);
-        const columns = keys.map((key) => {
-          let col = {};
-          col.id = key;
-          col.label = doc.data().regData[0][key];
-          return col;
-        });
-        const menuItems = columns.map((column) => {
-          let item = {};
-          item.value = column.id;
-          item.option = column.label;
-          return item;
-        })
-        setColumns(columns);
-        setMenuItems(menuItems);
-      })
-      .catch((err) => console.log('Error getting event: ', err));
-  };
 
   const handleChange = (select, key) => {
     //create the column map, but make sure there are no duplicate column header entries
@@ -199,87 +199,92 @@ export default function Event(props) {
 
   return (
     <div>
-      <SimpleSelect
-        items={menuItems}
-        label='Last Name'
-        onChange={(key) => handleChange('lastName', key)}
-        toolTip="Select the column that contains the athlete's last name"
-        value={_.get(_.find(columnMap, (o) => o.columnName === 'lastName'), 'columnId', '')}
-      />
-      <SimpleSelect
-        items={menuItems}
-        label='First Name'
-        onChange={(key) => handleChange('firstName', key)}
-        toolTip="Select the column that contains the athlete's first name"
-        value={_.get(_.find(columnMap, (o) => o.columnName === 'firstName'), 'columnId', '')}
-      />
-      <SimpleSelect
-        items={menuItems}
-        label='Gender'
-        onChange={(key) => handleChange('gender', key)}
-        toolTip="Select the column that contains the athlete's gender"
-        value={_.get(_.find(columnMap, (o) => o.columnName === 'gender'), 'columnId', '')}
-      />
-      <SimpleSelect
-        items={menuItems}
-        label='Birth Date'
-        onChange={(key) => handleChange('birthDate', key)}
-        toolTip="Select the column that contains the athlete's birth date"
-        value={_.get(_.find(columnMap, (o) => o.columnName === 'birthDate'), 'columnId', '')}
-      />
-      <SimpleSelect
-        items={menuItems}
-        label='Club'
-        onChange={(key) => handleChange('club', key)}
-        toolTip="Select the column that contains the athlete's club"
-        value={_.get(_.find(columnMap, (o) => o.columnName === 'club'), 'columnId', '')}
-      />
-      <SimpleSelect
-        items={menuItems}
-        label='USSS License'
-        onChange={(key) => handleChange('usssLicense', key)}
-        toolTip="Select the column that contains the athlete's USSS License Number"
-        value={_.get(_.find(columnMap, (o) => o.columnName === 'usssLicense'), 'columnId', '')}
-      />
-      <SimpleSelect
-        items={menuItems}
-        label='FIS License'
-        onChange={(key) => handleChange('fisLicense', key)}
-        toolTip="Select the column that contains the athlete's FIS License Number"
-        value={_.get(_.find(columnMap, (o) => o.columnName === 'fisLicense'), 'columnId', '')}
-      />
-      <FormControlLabel
-        control={
-          <Switch
-            checked={checkFISNumbers}
-            onChange={() => setCheckFISNumbers(!checkFISNumbers)}
-            value={checkFISNumbers}
-            color="primary"
+      {menuItems.length > 0 ?
+        <div>
+          <SimpleSelect
+            items={menuItems}
+            label='Last Name'
+            onChange={(key) => handleChange('lastName', key)}
+            toolTip="Select the column that contains the athlete's last name"
+            value={_.get(_.find(columnMap, (o) => o.columnName === 'lastName'), 'columnId', '')}
           />
-        }
-        label="Check FIS Numbers"
-      />
-      <FormControlLabel
-        control={
-          <Switch
-            checked={showErrors}
-            onChange={handleShowErrors}
-            value={showErrors}
-            color="primary"
+          <SimpleSelect
+            items={menuItems}
+            label='First Name'
+            onChange={(key) => handleChange('firstName', key)}
+            toolTip="Select the column that contains the athlete's first name"
+            value={_.get(_.find(columnMap, (o) => o.columnName === 'firstName'), 'columnId', '')}
           />
-        }
-        label="Show Errors"
-      />
-      <Button onClick={handleScrubClick} color="primary" disabled={disableScrubButton} >
-        Scrub
-      </Button>
-      <EventTable
-        columns={columns}
-        fisPointsList={fisPointsList}
-        rows={rows}
-        updateRow={updateRow}
-        usssPointsList={usssPointsList}
-      />
+          <SimpleSelect
+            items={menuItems}
+            label='Gender'
+            onChange={(key) => handleChange('gender', key)}
+            toolTip="Select the column that contains the athlete's gender"
+            value={_.get(_.find(columnMap, (o) => o.columnName === 'gender'), 'columnId', '')}
+          />
+          <SimpleSelect
+            items={menuItems}
+            label='Birth Date'
+            onChange={(key) => handleChange('birthDate', key)}
+            toolTip="Select the column that contains the athlete's birth date"
+            value={_.get(_.find(columnMap, (o) => o.columnName === 'birthDate'), 'columnId', '')}
+          />
+          <SimpleSelect
+            items={menuItems}
+            label='Club'
+            onChange={(key) => handleChange('club', key)}
+            toolTip="Select the column that contains the athlete's club"
+            value={_.get(_.find(columnMap, (o) => o.columnName === 'club'), 'columnId', '')}
+          />
+          <SimpleSelect
+            items={menuItems}
+            label='USSS License'
+            onChange={(key) => handleChange('usssLicense', key)}
+            toolTip="Select the column that contains the athlete's USSS License Number"
+            value={_.get(_.find(columnMap, (o) => o.columnName === 'usssLicense'), 'columnId', '')}
+          />
+          <SimpleSelect
+            items={menuItems}
+            label='FIS License'
+            onChange={(key) => handleChange('fisLicense', key)}
+            toolTip="Select the column that contains the athlete's FIS License Number"
+            value={_.get(_.find(columnMap, (o) => o.columnName === 'fisLicense'), 'columnId', '')}
+          />
+          <FormControlLabel
+            control={
+              <Switch
+                checked={checkFISNumbers}
+                onChange={() => setCheckFISNumbers(!checkFISNumbers)}
+                value={checkFISNumbers}
+                color="primary"
+              />
+            }
+            label="Check FIS Numbers"
+          />
+          <FormControlLabel
+            control={
+              <Switch
+                checked={showErrors}
+                onChange={handleShowErrors}
+                value={showErrors}
+                color="primary"
+              />
+            }
+            label="Show Errors"
+          />
+          <Button onClick={handleScrubClick} color="primary" disabled={disableScrubButton} >
+            Scrub
+          </Button>
+          <EventTable
+            columns={columns}
+            fisPointsList={fisPointsList}
+            rows={rows}
+            updateRow={updateRow}
+            usssPointsList={usssPointsList}
+          />
+        </div>
+        : null
+      }
     </div>
   );
 

@@ -1,13 +1,15 @@
 import React, { useEffect, useState } from 'react';
 
+import firebase from 'firebase/app';
+
 import Button from '@material-ui/core/Button';
-import DateFnsUtils from '@date-io/date-fns';
 import Dialog from '@material-ui/core/Dialog';
 import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
 import DialogTitle from '@material-ui/core/DialogTitle';
 import Divider from '@material-ui/core/Divider';
 import Grid from '@material-ui/core/Grid';
+import MomentUtils from '@date-io/moment';
 import {
   MuiPickersUtilsProvider,
   KeyboardDatePicker,
@@ -31,7 +33,7 @@ const useStyles = makeStyles({
 
 
 export default function ParticipantDialog(props) {
-  const [birthDate, setBirthDate] = useState();
+  const [birthDate, setBirthDate] = useState(new Date());
   const [club, setClub] = useState();
   const [country, setCountry] = useState();
   const [division, setDivision] = useState();
@@ -97,7 +99,7 @@ export default function ParticipantDialog(props) {
   const handleChange = (e, field) => {
     switch (field) {
       case 'birthDate':
-        // setBirthDate()
+        setBirthDate(e.toDate());
         break;
       case 'firstName':
         setFirstName(toInitialCaps(e.target.value));
@@ -144,7 +146,7 @@ export default function ParticipantDialog(props) {
 
   const updatePoints = () => {
     const row = {
-      birthDate,
+      birthDate: firebase.firestore.Timestamp.fromDate(birthDate),
       club,
       country,
       division,
@@ -187,7 +189,11 @@ export default function ParticipantDialog(props) {
       <Dialog open={open} onClose={handleClose} aria-labelledby="update-participant-data" fullWidth maxWidth="lg">
         <DialogTitle id="update-participant-data">Update Participant Data</DialogTitle>
         <DialogContent>
-          <Typography variant="body1" gutterBottom>
+          <Typography
+            color="error"
+            gutterBottom
+            variant="body1"
+          >
             {error}
           </Typography>
           <Grid container spacing={2}>
@@ -210,11 +216,11 @@ export default function ParticipantDialog(props) {
               />
             </Grid>
             <Grid item xs>
-              <MuiPickersUtilsProvider utils={DateFnsUtils}>
+              <MuiPickersUtilsProvider utils={MomentUtils}>
                 <KeyboardDatePicker
                   disableToolbar
                   variant="inline"
-                  format="MM/dd/yyyy"
+                  format="L" //local date format
                   margin="dense"
                   id="birthDate"
                   label="Birth Date"

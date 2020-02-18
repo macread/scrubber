@@ -70,7 +70,7 @@ export default function EventTable(props) {
   };
 
   const handleOpenParticipantDialog = (row) => {
-    row.birthDate = typeof row.birthDate === 'string' ? row.birthDate : moment(row.birthDate.toDate()).format('YYYY-MM-DD');
+    row.birthDate = typeof row.birthDate === 'string' ? row.birthDate : moment(row.birthDate.toDate());
     setParticipantRow(row);
     toggleParticipantDialog();
   }
@@ -118,11 +118,11 @@ export default function EventTable(props) {
                       className={row.error ? (row.error !== '' ? classes.tableRow : null) : null}
                       hover role="checkbox"
                       key={i}
-                      onClick={(e) => handleOpenParticipantDialog(row)}
+                      onClick={() => handleOpenParticipantDialog(row)}
                       tabIndex={-1}
                     >
                       {columns.map(column => {
-                        const value = typeof row[column.id] === 'object' ? moment(row[column.id].toDate()).format('MM/DD/YYYY') : row[column.id];
+                        const value = typeof row[column.id] === 'object' ? moment(row[column.id].toDate()).format('L') : row[column.id];
                         return (
                           <TableCell key={column.id} align={column.align}>
                             {column.format && typeof value === 'number' ? column.format(value) : value}
