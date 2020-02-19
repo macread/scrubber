@@ -3,6 +3,7 @@ import React, { useEffect, useState } from 'react';
 import firebase from 'firebase/app';
 
 import Button from '@material-ui/core/Button';
+import Box from '@material-ui/core/Box';
 import Dialog from '@material-ui/core/Dialog';
 import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
@@ -92,6 +93,10 @@ export default function ParticipantDialog(props) {
 
   const classes = useStyles();
 
+  const handleClearError = () => {
+    setError('');
+  }
+
   const handleClose = () => {
     toggleParticipantDialog();
   };
@@ -145,8 +150,9 @@ export default function ParticipantDialog(props) {
   }
 
   const updatePoints = () => {
+    const birthDateObj = "_isAMomentObject" in birthDate ? birthDate.toDate() : birthDate;
     const row = {
-      birthDate: firebase.firestore.Timestamp.fromDate(birthDate),
+      birthDate: firebase.firestore.Timestamp.fromDate(birthDateObj),
       club,
       country,
       division,
@@ -189,13 +195,26 @@ export default function ParticipantDialog(props) {
       <Dialog open={open} onClose={handleClose} aria-labelledby="update-participant-data" fullWidth maxWidth="lg">
         <DialogTitle id="update-participant-data">Update Participant Data</DialogTitle>
         <DialogContent>
-          <Typography
-            color="error"
-            gutterBottom
-            variant="body1"
-          >
-            {error}
-          </Typography>
+          {error !== '' ?
+            <Box bgcolor="error.main" color="error.contrastText" p={2}>
+              <Grid container direction="row" justify="space-between" alignItems="center">
+                <Typography
+                  gutterBottom
+                  variant="body1"
+                >
+                  {error}
+                </Typography>
+                <Button
+                  color='primary'
+                  onClick={handleClearError}
+                >
+                  Override Error
+              </Button>
+              </Grid>
+            </Box>
+            :
+            null
+          }
           <Grid container spacing={2}>
             <Grid item xs>
               <TextField

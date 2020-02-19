@@ -38,7 +38,16 @@
     "deploy": "gh-pages -d build"
   },
   "eslintConfig": {
-    "extends": "react-app"
+    "plugins": [
+      "react-hooks"
+    ],
+    "extends": [
+      "react-app",
+      "react-hooks"
+    ],
+    "rules": {
+      "react-hooks/exhaustive-deps": "off"
+    }
   },
   "browserslist": [
     ">0.2%",

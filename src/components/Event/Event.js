@@ -96,13 +96,13 @@ export default function Event(props) {
 
     firestore.collection('points').doc('fisWomen').get()
       .then((doc) => {
-        setFisPointsList(doc.data().pointsList);
+        womensPointsList = doc.data().pointsList;
       })
       .catch((err) => console.log("Error getting FIS Women's Points List: ", err));
 
-    firestore.collection('points').doc('usssMen').get()
+    firestore.collection('points').doc('fisMen').get()
       .then((doc) => {
-        const pointsList = _.concat(fisPointsList, _.slice(doc.data().pointsList, 1));
+        const pointsList = _.concat(womensPointsList, _.slice(doc.data().pointsList, 1));
         setFisPointsList(pointsList);
       })
       .catch((err) => console.log("Error getting FIS Men's Points List: ", err));
@@ -148,16 +148,16 @@ export default function Event(props) {
   }
 
   const scrubRow = (row, id) => {
-    let fisPoints = null;
-    let usssPoints = _.find(usssPointsList, [USSS.USSA_ID, row.usssLicense]);
-    let error = usssPoints ? '' : 'Unknown USSS License Number';
-    error = usssPoints ? verifyName(error, row, usssPoints, USSS) : error;
+    let result = {
+      fisList: null,
+      usssList: null,
+      error: ''
+    };
+    result = verify('USSS', usssPointsList, row, result);
     if (checkFISNumbers) {
-      fisPoints = _.find(fisPointsList, [FIS.FIS_CODE, row.fisLicense]);
-      error = fisPoints ? error : 'Unknown FIS License Number';
-      error = fisPoints ? verifyName(error, row, fisPoints, FIS) : error;
+      result = verify('FIS', fisPointsList, row, result);
     }
-    let country = _.get(fisPoints, FIS.NATION, (usssPoints ? 'USA' : ''));
+    let country = _.get(result.fisList, FIS.NATION, (result.usssList ? 'USA' : ''));
     return ({
       lastName: _.get(row, 'lastName', ''),
       firstName: _.get(row, 'firstName', ''),
@@ -165,20 +165,22 @@ export default function Event(props) {
       club: _.get(row, 'club', ''),
       birthDate: _.get(row, 'birthDate', ''),
       usssLicense: _.get(row, 'usssLicense', ''),
-      usssSprintPoints: _.get(usssPoints, USSS.SPRINT, ''),
-      usssDistancePoints: _.get(usssPoints, USSS.DISTANCE, ''),
-      division: _.get(usssPoints, USSS.DIVISION, ''),
+      usssSprintPoints: _.get(result.usssList, USSS.SPRINT, ''),
+      usssDistancePoints: _.get(result.usssList, USSS.DISTANCE, ''),
+      division: _.get(result.usssList, USSS.DIVISION, ''),
       fisLicense: _.get(row, 'fisLicense', ''),
-      fisSprintPoints: _.get(fisPoints, FIS.SPRINT, ''),
-      fisDistancePoints: _.get(fisPoints, FIS.DISTANCE, ''),
+      fisSprintPoints: _.get(result.fisList, FIS.SPRINT, ''),
+      fisDistancePoints: _.get(result.fisList, FIS.DISTANCE, ''),
       country,
-      error,
+      error: result.error,
       id,
     });
   }
 
   const updateRow = (row) => {
-    row = scrubRow(row, row.id);
+    if (row.error !== '') {
+      row = scrubRow(row, row.id);
+    }
     let rowsCopy = rows.slice();
     rowsCopy[_.findIndex(rowsCopy, 'id', row.id)] = row;
     setRows(rowsCopy);
@@ -188,14 +190,39 @@ export default function Event(props) {
       });
   }
 
-  const verifyName = (error, regData, pointsData, type) => {
-    error += regData.firstName.toLowerCase() !== pointsData[type.FIRST_NAME].toLowerCase() ? type.NAME + ' First Names do not match. ' : '';
-    error += regData.lastName.toLowerCase() !== pointsData[type.LAST_NAME].toLowerCase() ? type.NAME + ' Last Names do not match. ' : '';
-    error += moment(regData.birthDate.toDate()).format('YYYY') !== pointsData[type.YOB].toString() ? type.NAME + ' Birth Years do not match. ' : '';
-    error += regData.gender !== pointsData[type.GENDER] ? type.NAME + ' Genders do not match. ' : '';
+  const verify = (listType, pointsList, row, result) => {
+    const predicate = listType === 'USSS' ? [USSS.USSA_ID, row.usssLicense] : [FIS.FIS_CODE, row.fisLicense]
+    let points = _.find(pointsList, predicate);
+    const license = listType === 'USSS' ? row.usssLicense : row.fisLicense;
+    if (license !== '') {
+      result.error += points ? '' : `Unknown ${listType} License Number. `;
+      result.error += points ? verifyName(row, points, listType) : '';
+    } else {
+      result.error += filterLastName(listType, pointsList, row.lastName);
+    }
+    if (listType === 'USSS') {
+      result.usssList = points;
+    } else {
+      result.fisList = points;
+    }
+    return result;
+  };
 
+  const verifyName = (regData, pointsData, listType) => {
+    const type = listType === 'USSS' ? USSS : FIS;
+    let error = regData.firstName.toLowerCase() !== pointsData[type.FIRST_NAME].toLowerCase() ? `${type.NAME} First Names do not match. ` : '';
+    error += regData.lastName.toLowerCase() !== pointsData[type.LAST_NAME].toLowerCase() ? `${type.NAME} Last Names do not match. ` : '';
+    error += moment(regData.birthDate.toDate()).format('YYYY') !== pointsData[type.YOB].toString() ? `${type.NAME} Birth Years do not match. ` : '';
+    error += regData.gender !== pointsData[type.GENDER] ? `${type.NAME} Genders do not match. ` : '';
     return error;
   }
+
+  const filterLastName = (listType, pointsList, lastName) => {
+    const type = listType === 'USSS' ? USSS : FIS;
+    const racers = _.filter(pointsList, (i) => type.LAST_NAME in i && i[type.LAST_NAME].toLowerCase() === lastName.toLowerCase());
+    return racers.length > 0 ? `${racers.length} racers found with last name of ${lastName} on ${listType} Points List. ` : '';
+  }
+
 
   return (
     <div>

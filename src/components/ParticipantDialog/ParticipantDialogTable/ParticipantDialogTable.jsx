@@ -3,14 +3,12 @@ import { makeStyles } from '@material-ui/core/styles';
 
 import _ from "lodash";
 
-import Button from '@material-ui/core/Button';
 import Table from '@material-ui/core/Table';
 import TableBody from '@material-ui/core/TableBody';
 import TableCell from '@material-ui/core/TableCell';
 import TableContainer from '@material-ui/core/TableContainer';
 import TableHead from '@material-ui/core/TableHead';
 import TableRow from '@material-ui/core/TableRow';
-import Tooltip from '@material-ui/core/Tooltip';
 import Paper from '@material-ui/core/Paper';
 
 const fisColumns = {
@@ -29,6 +27,18 @@ const usssColumns = {
   divOrNat: 'C',
   sprintPoints: 'G',
   distancePoints: 'H',
+}
+const notFound = (columns) => {
+  return (
+    {
+      [columns.license]: 1,
+      [columns.firstname]: '',
+      [columns.lastName]: '',
+      [columns.divOrNat]: 'no matching names found in points list',
+      [columns.sprintPoints]: '',
+      [columns.distancePoints]: '',
+    }
+  );
 }
 
 const useStyles = makeStyles({
@@ -51,7 +61,8 @@ export default function ParticipantDialogTable(props) {
     divOrNatHeader = 'Nation';
   }
 
-  const rows = _.filter(pointsList, (i) => i[columns.license] === license || i[columns.lastName].toLowerCase() === lastName.toLowerCase());
+  const rows = _.filter(pointsList, (i) => (i[columns.license] === parseInt(license)) || ((columns.lastName in i) && (i[columns.lastName].toLowerCase() === lastName.toLowerCase())));
+  if (rows.length === 0) { rows.push(notFound(columns)) };
 
   return (
     <TableContainer component={Paper}>
@@ -69,23 +80,15 @@ export default function ParticipantDialogTable(props) {
         </TableHead>
         <TableBody>
           {rows.map(row => (
-            <TableRow key={row.D}>
+            <TableRow key={row[columns.license]}>
               <TableCell component="th" scope="row">
-                {row[columns.license]}
+                {row[columns.license] !== 1 ? row[columns.license] : ''}
               </TableCell>
               <TableCell align="left">{row[columns.firstName]}</TableCell>
               <TableCell align="left">{row[columns.lastName]}</TableCell>
               <TableCell align="center">{row[columns.divOrNat]}</TableCell>
               <TableCell align="center">{row[columns.sprintPoints]}</TableCell>
               <TableCell align="center">{row[columns.distancePoints]}</TableCell>
-              <TableCell align="center">
-                <Tooltip title="Click to use this athlete's name and points.">
-                  <Button color="primary" onClick={() => onClick(row)}>
-                    Use
-                  </Button>
-                </Tooltip>
-              </TableCell>
-
             </TableRow>
           ))}
         </TableBody>
