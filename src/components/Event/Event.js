@@ -44,7 +44,8 @@ export default function Event(props) {
   const [columns, setColumns] = useState([]);
   const [menuItems, setMenuItems] = useState([]);
   const [regData, setRegData] = useState([]);
-  const [rows, setRows] = useState([]);
+  const [rows, setRows] = useState([]); // these are the rows that are displayed to the user. The row data needs to be kept in sync with saveRows
+  const [saveRows, setSaveRows] = useState([]); // these are the rows so we can undo a filter of the display rows. Needs to be kept in sync with rows
   const [columnMap, setColumnMap] = useState([]);
   const [usssPointsList, setUsssPointsList] = useState([]);
   const [fisPointsList, setFisPointsList] = useState([]);
@@ -59,6 +60,7 @@ export default function Event(props) {
         setRegData(doc.data().regData);
         setColumnMap(doc.data().columnMap || []);
         setRows(doc.data().scrubbedData || []);
+        setSaveRows(doc.data().scrubbedData || []);
         const keys = Object.keys(doc.data().regData[0]);
         const columns = keys.map((key) => {
           let col = {};
@@ -119,7 +121,8 @@ export default function Event(props) {
       }
       return (_.omitBy(rowValues, _.isNil)); //remove the undefined objects
     })
-    setRows(rows);
+    setRows(rows); // need to keep the scrubbed rows and saveRows in sync
+    setSaveRows(rows);
     setColumnMap(colMap);
     firestore.collection(auth.currentUser.uid).doc(eventId).update({ columnMap, scrubbedData: rows })
       .catch((error) => {
@@ -131,7 +134,8 @@ export default function Event(props) {
     const scrubbedRows = _.map(rows, (row, id) => {
       return scrubRow(row, id);
     });
-    setRows(scrubbedRows);
+    setRows(scrubbedRows); // need to keep the scrubbed rows and saveRows in sync
+    setSaveRows(scrubbedRows);
     firestore.collection(auth.currentUser.uid).doc(eventId).update({ scrubbedData: scrubbedRows })
       .catch((error) => {
         console.error(`Error updating document ${eventId}:`, error);
@@ -140,9 +144,10 @@ export default function Event(props) {
 
   const handleShowErrors = () => {
     if (!showErrors) {
+      setSaveRows(rows); // keeping the original rows so we can work on just the ones with errors. 
       setRows(_.filter(rows, (row) => row.error !== ''));
     } else {
-      getRegData();
+      setRows(saveRows); // show all the rows now.
     }
     setShowErrors(!showErrors);
   }
@@ -181,13 +186,18 @@ export default function Event(props) {
     if (row.error !== '') {
       row = scrubRow(row, row.id);
     }
-    let rowsCopy = rows.slice();
-    rowsCopy[_.findIndex(rowsCopy, 'id', row.id)] = row;
-    setRows(rowsCopy);
+    // update the saveRows and persist the change
+    let rowsCopy = saveRows.slice();
+    rowsCopy[_.findIndex(rowsCopy, ['id', row.id])] = row;
+    setSaveRows(rowsCopy);
     firestore.collection(auth.currentUser.uid).doc(eventId).update({ scrubbedData: rowsCopy })
       .catch((error) => {
         console.error(`Error updating document ${eventId}:`, error);
       });
+    // now update the dislayed rows to make sure they are in sync
+    rowsCopy = rows.slice();
+    rowsCopy[_.findIndex(rowsCopy, ['id', row.id])] = row;
+    setRows(rowsCopy);
   }
 
   const verify = (listType, pointsList, row, result) => {
