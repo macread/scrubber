@@ -13,7 +13,7 @@
     "firebase": "^7.0.0",
     "gh-pages": "^2.1.1",
     "js-xlsx": "^0.8.22",
-    "lodash": "^4.17.20",
+    "lodash": "^4.17.21",
     "material-ui-dropzone": "^2.4.7",
     "mdi-material-ui": "^6.20.0",
     "moment": "^2.24.0",
